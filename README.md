@@ -1,7 +1,7 @@
-<h1 align="center">Immuni European Federation Gateway Client</h1>
+<h1 align="center">Digital Green Certificate Gateway Client</h1>
 
 <div align="center">
-<img width="256" height="256" src="img/logo.png">
+<img width="256" height="256" src="img/logo-dcg.png">
 </div>
 
 <br />
@@ -47,7 +47,7 @@
 
 
 # Context
-This repository contains the source code of Immuni's European Federation Gateway Client developed for the interoperability between national backend servers of decentralised contact tracing applications to combat COVID-19.
+This repository contains the source code of the Digital Green Certificate Gateway Client developed for the interoperability between national backend servers of decentralised contact tracing applications to combat COVID-19.
 
 This client acts as a bridge between the Immuni backend and the federation gateway developed by the EU.
 
