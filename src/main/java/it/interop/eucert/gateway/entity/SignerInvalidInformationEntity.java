@@ -34,12 +34,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-//@CompoundIndexes({
-//    @CompoundIndex(name = "signer_information_kid_1", def = "{'kid' : 1}"),
-//    @CompoundIndex(name = "signer_information_id_1", def = "{'id' : 1}")
-//})
-@Document(collection = "signer_information")
-public class SignerInformationEntity implements Serializable {
+@Document(collection = "signer_invalid_information")
+public class SignerInvalidInformationEntity implements Serializable {
 	private static final long serialVersionUID = 5989282342501802070L;
 
 	@Id
@@ -70,16 +66,7 @@ public class SignerInformationEntity implements Serializable {
     @Field(name="created_at")
     private Date createdAt;
 
-	@Field("revoked")
-	private boolean revoked;
-
-	@Field("revoked_date")
-	private Date revokedDate;
-
     @Field(name="batch_tag")
     private String downloadBatchTag;
-    
-    @Field(name="batch_tag_revoke")
-    private String revokedBatchTag;
 
 }

@@ -24,40 +24,32 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import it.interop.eucert.gateway.entity.SignerInformationEntity;
+import it.interop.eucert.gateway.entity.SignerUploadInformationEntity;
 
 @Repository
-public class TrustedPartyRepository {
+public class SignerUploadInformationRepository {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	public SignerInformationEntity save(SignerInformationEntity trustedPartyEntity) {
-		return mongoTemplate.save(trustedPartyEntity);
+
+	public SignerUploadInformationEntity save(SignerUploadInformationEntity signerUploadInformationEntity) {
+		return mongoTemplate.save(signerUploadInformationEntity);
 	}
 
-	public SignerInformationEntity getByKid(String kid) {
+	public List<SignerUploadInformationEntity> getSignerInformationToSend() {
 		Query query = new Query();
-		query.addCriteria(Criteria.where("kid").is(kid));
-		return mongoTemplate.findOne(query, SignerInformationEntity.class);
+		query.addCriteria(Criteria.where("batch_tag").is(null));
+//		query.fields().include("_id");
+		List<SignerUploadInformationEntity> kets = mongoTemplate.find(query, SignerUploadInformationEntity.class);
+		return kets;
 	}
 
-	public int setAllTrustedPartyRevoked(String revokedBatchTag) {
-		int numDoc = 0;
-		List<SignerInformationEntity> trustedPartyList = mongoTemplate.findAll(SignerInformationEntity.class);
-		if (trustedPartyList!=null) {
-			numDoc = trustedPartyList.size();
-			for (SignerInformationEntity trustedParty:trustedPartyList) {
-				if (!trustedParty.isRevoked()) {
-					trustedParty.setRevoked(true);
-					trustedParty.setRevokedDate(new Date());
-					trustedParty.setRevokedBatchTag(revokedBatchTag);
-					mongoTemplate.save(trustedParty);
-				}
-			}
-		}
-		return numDoc;
+	public List<SignerUploadInformationEntity> getSignerInformationToRevoke() {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("revoked").is(true)).addCriteria(Criteria.where("batch_tag").exists(true)).addCriteria(Criteria.where("batch_tag_revoke").is(null));
+//		query.fields().include("_id");
+		List<SignerUploadInformationEntity> kets = mongoTemplate.find(query, SignerUploadInformationEntity.class);
+		return kets;
 	}
-	
-	
-	
 }
