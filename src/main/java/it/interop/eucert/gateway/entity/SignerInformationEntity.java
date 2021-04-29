@@ -20,10 +20,13 @@
 
 package it.interop.eucert.gateway.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -33,56 +36,55 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@CompoundIndexes({
+    @CompoundIndex(name = "signer_information_kid_1", def = "{'kid' : 1}"),
+    @CompoundIndex(name = "signer_information_id_1", def = "{'id' : 1}")
+})
 @Document(collection = "signer_information")
-public class SignerInformationEntity {
+public class SignerInformationEntity implements Serializable {
+	private static final long serialVersionUID = 5989282342501802070L;
 
-    @Id
-    private Long id;
+	@Id
+    private String id;
 
-    @Field(name="send_batch_tag")
-    private String sendBatchTag;
-
-    @Field(name="revoked_batch_tag")
-    private String revokedBatchTag;
-    /**
-     * Timestamp of the Record.
-     */
-    @CreatedDate
-    @Field(name = "created_at")
-    private Date createdAt;
-
-    /**
-     * ISO 3166 Alpha-2 Country Code
-     * (plus code "EU" for administrative European Union entries).
-     */
+    @Field(name="id")
+    private Long index;
+    
+    @Field(name="kid")
+    private String kid;
+    
     @Field(name = "country")
     private String country;
 
-    /**
-     * SHA-256 Thumbprint of the certificate (hex encoded).
-     */
-    @Field(name="thumbprint")
+    @Field(name = "thumbprint")
     private String thumbprint;
 
-    /**
-     * Base64 encoded certificate raw data.
-     */
-    @Field(name="raw_data")
+    @Field(name = "raw_data")
     private String rawData;
 
-    /**
-     * Signature of the TrustAnchor.
-     */
-    @Field(name="signature")
+    @Field(name = "signature")
     private String signature;
 
-    /**
-     * Type of the certificate (currently only DSC).
-     */
     @Field(name = "certificate_type")
     private CertificateType certificateType;
+    
+    @CreatedDate
+    @Field(name="created_at")
+    private Date createdAt;
+
+    @Field("verified_sign")
+	private boolean verifiedSign;
 
 	@Field("revoked")
 	private boolean revoked;
-	
+
+	@Field("revoked_date")
+	private Date revokedDate;
+
+    @Field(name="batch_tag")
+    private String downloadBatchTag;
+    
+    @Field(name="batch_tag_revoke")
+    private String revokedBatchTag;
+
 }

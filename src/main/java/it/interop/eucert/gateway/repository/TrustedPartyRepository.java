@@ -23,7 +23,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
-import it.interop.eucert.gateway.entity.TrustedPartyEntity;
+import it.interop.eucert.gateway.entity.SignerInformationEntity;
 
 @Repository
 public class TrustedPartyRepository {
@@ -31,25 +31,26 @@ public class TrustedPartyRepository {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	public TrustedPartyEntity save(TrustedPartyEntity trustedPartyEntity) {
+	public SignerInformationEntity save(SignerInformationEntity trustedPartyEntity) {
 		return mongoTemplate.save(trustedPartyEntity);
 	}
 
-	public TrustedPartyEntity getByKid(String kid) {
+	public SignerInformationEntity getByKid(String kid) {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("kid").is(kid));
-		return mongoTemplate.findOne(query, TrustedPartyEntity.class);
+		return mongoTemplate.findOne(query, SignerInformationEntity.class);
 	}
 
-	public int setAllTrustedPartyRevoked() {
+	public int setAllTrustedPartyRevoked(String revokedBatchTag) {
 		int numDoc = 0;
-		List<TrustedPartyEntity> trustedPartyList = mongoTemplate.findAll(TrustedPartyEntity.class);
+		List<SignerInformationEntity> trustedPartyList = mongoTemplate.findAll(SignerInformationEntity.class);
 		if (trustedPartyList!=null) {
 			numDoc = trustedPartyList.size();
-			for (TrustedPartyEntity trustedParty:trustedPartyList) {
+			for (SignerInformationEntity trustedParty:trustedPartyList) {
 				if (!trustedParty.isRevoked()) {
 					trustedParty.setRevoked(true);
 					trustedParty.setRevokedDate(new Date());
+					trustedParty.setRevokedBatchTag(revokedBatchTag);
 					mongoTemplate.save(trustedParty);
 				}
 			}

@@ -20,10 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
-import it.interop.eucert.gateway.entity.SignerInformationEntity;
+import it.interop.eucert.gateway.entity.SignerUploadInformationEntity;
 
 @Repository
 public class SignerInformationRepository {
@@ -31,40 +30,31 @@ public class SignerInformationRepository {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	public SignerInformationEntity save(SignerInformationEntity signerInformationEntity) {
+	public SignerUploadInformationEntity save(SignerUploadInformationEntity signerInformationEntity) {
 		return mongoTemplate.save(signerInformationEntity);
 	}
 
-	public List<SignerInformationEntity> getSignerInformationToSend() {
+	public List<SignerUploadInformationEntity> getSignerInformationToSend() {
 		Query query = new Query();
-		query.addCriteria(Criteria.where("send_batch_tag").is(null));
+		query.addCriteria(Criteria.where("batch_tag").is(null));
 //		query.fields().include("_id");
-		List<SignerInformationEntity> kets = mongoTemplate.find(query, SignerInformationEntity.class);
+		List<SignerUploadInformationEntity> kets = mongoTemplate.find(query, SignerUploadInformationEntity.class);
 		return kets;
 	}
 
-	public void setSendBatchTag(SignerInformationEntity signerInformationEntity) {
-		Query query = new Query();
-        query.addCriteria(Criteria.where("_id").is(signerInformationEntity.getId()));
-		Update update = new Update();
-		update.set("send_batch_tag", signerInformationEntity.getSendBatchTag());
-		mongoTemplate.findAndModify(query, update, SignerInformationEntity.class);
-	}
+//	public void setSendBatchTag(SignerUploadInformationEntity signerInformationEntity) {
+//		Query query = new Query();
+//        query.addCriteria(Criteria.where("_id").is(signerInformationEntity.getId()));
+//		Update update = new Update();
+//		update.set("batch_tag", signerInformationEntity.getUploadBatchTag());
+//		mongoTemplate.findAndModify(query, update, SignerUploadInformationEntity.class);
+//	}
 	
-	public List<SignerInformationEntity> getSignerInformationToRevoke() {
+	public List<SignerUploadInformationEntity> getSignerInformationToRevoke() {
 		Query query = new Query();
-		query.addCriteria(Criteria.where("revoked").is(true)).addCriteria(Criteria.where("send_batch_tag").exists(true)).addCriteria(Criteria.where("revoked_batch_tag").is(null));
+		query.addCriteria(Criteria.where("revoked").is(true)).addCriteria(Criteria.where("batch_tag").exists(true)).addCriteria(Criteria.where("batch_tag_revoke").is(null));
 //		query.fields().include("_id");
-		List<SignerInformationEntity> kets = mongoTemplate.find(query, SignerInformationEntity.class);
+		List<SignerUploadInformationEntity> kets = mongoTemplate.find(query, SignerUploadInformationEntity.class);
 		return kets;
 	}
-
-	public void setRevokeBatchTag(SignerInformationEntity signerInformationEntity) {
-		Query query = new Query();
-        query.addCriteria(Criteria.where("_id").is(signerInformationEntity.getId()));
-		Update update = new Update();
-		update.set("revoked_batch_tag", signerInformationEntity.getSendBatchTag()).set("to_revoke", false);
-		mongoTemplate.findAndModify(query, update, SignerInformationEntity.class);
-	}
-	
 }

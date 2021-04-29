@@ -8,11 +8,11 @@
 		<version>2.3.3.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>it.dgc.interop.federationgateway</groupId>
-	<artifactId>it-dgc-gateway-client</artifactId>
+	<groupId>it.eucert.interop.federationgateway</groupId>
+	<artifactId>it-eucert-gateway-client</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>it-dgc-gateway-client</name>
-	<description>Italian client for DGC interoperability with European Federation Gateway Service</description>
+	<name>it-eucert-gateway-client</name>
+	<description>EU COVID-19 certificate - gateway client</description>
 
 	<properties>
 		<java.version>11</java.version>

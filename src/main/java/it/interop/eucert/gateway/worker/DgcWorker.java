@@ -31,8 +31,8 @@ import it.interop.eucert.gateway.dto.SignedCertificateDto;
 import it.interop.eucert.gateway.dto.TrustListDto;
 import it.interop.eucert.gateway.entity.DgcLogEntity;
 import it.interop.eucert.gateway.entity.DgcLogInfo;
+import it.interop.eucert.gateway.entity.SignerUploadInformationEntity;
 import it.interop.eucert.gateway.entity.SignerInformationEntity;
-import it.interop.eucert.gateway.entity.TrustedPartyEntity;
 import it.interop.eucert.gateway.entity.DgcLogEntity.OperationType;
 import it.interop.eucert.gateway.mapper.DgcMapper;
 import it.interop.eucert.gateway.repository.DgcLogRepository;
@@ -77,17 +77,17 @@ public class DgcWorker {
 	public void uploadWorker() {
 		log.info("@@@  UPLOAD -> START Processing upload. @@@");
 
-		List<SignerInformationEntity> toSendSignerInformationList = signerInformationRepository.getSignerInformationToSend();
+		List<SignerUploadInformationEntity> toSendSignerInformationList = signerInformationRepository.getSignerInformationToSend();
 		if (toSendSignerInformationList != null) {
-			for (SignerInformationEntity signerInformation:toSendSignerInformationList) {
+			for (SignerUploadInformationEntity signerInformation:toSendSignerInformationList) {
 				send(signerInformation);
 			}
 			
 		}
 		
-		List<SignerInformationEntity> toRevokeSignerInformationList = signerInformationRepository.getSignerInformationToRevoke();
+		List<SignerUploadInformationEntity> toRevokeSignerInformationList = signerInformationRepository.getSignerInformationToRevoke();
 		if (toRevokeSignerInformationList != null) {
-			for (SignerInformationEntity signerInformation:toRevokeSignerInformationList) {
+			for (SignerUploadInformationEntity signerInformation:toRevokeSignerInformationList) {
 				revoke(signerInformation);
 			}
 			
@@ -109,7 +109,7 @@ public class DgcWorker {
 	
 	
 	@Transactional
-	private String send(SignerInformationEntity signerInformationEntity) {
+	private String send(SignerUploadInformationEntity signerInformationEntity) {
 		String report = null;
 		String batchTag = Util.batchTagGenerator(OperationType.UPLOAD);
 
@@ -121,8 +121,8 @@ public class DgcWorker {
 				report = resp.getStatusCode().toString();
 				
 				if (resp.getStatusCode() == RestApiClient.DOWNLOAD_STATUS_RETURNS_BATCH_200) {
-					signerInformationEntity.setSendBatchTag(batchTag);
-					signerInformationRepository.setSendBatchTag(signerInformationEntity);
+					signerInformationEntity.setUploadBatchTag(batchTag);
+					signerInformationRepository.save(signerInformationEntity);
 				}
 
 			}
@@ -139,9 +139,9 @@ public class DgcWorker {
 	}
 	
 	@Transactional
-	private String revoke(SignerInformationEntity signerInformationEntity) {
+	private String revoke(SignerUploadInformationEntity signerInformationEntity) {
 		String report = null;
-		String batchTag = Util.batchTagGenerator(OperationType.UPLOAD);
+		String batchTag = Util.batchTagGenerator(OperationType.REVOKE);
 
 		try {
 			
@@ -152,7 +152,7 @@ public class DgcWorker {
 				
 				if (resp.getStatusCode() == RestApiClient.DOWNLOAD_STATUS_RETURNS_BATCH_200) {
 					signerInformationEntity.setRevokedBatchTag(batchTag);
-					signerInformationRepository.setRevokeBatchTag(signerInformationEntity);
+					signerInformationRepository.save(signerInformationEntity);
 				}
 
 			}
@@ -187,34 +187,33 @@ public class DgcWorker {
 					Integer numNewDoc = 0;
 					Integer numInvalidDoc = 0;
 					Integer numOldDoc = 0;
-					Integer numTotDoc = trustedPartyRepository.setAllTrustedPartyRevoked();
+					Integer numTotDoc = trustedPartyRepository.setAllTrustedPartyRevoked(batchTag);
 					List<TrustListDto> trustList = resp.getData();
 					dgcLogInfo.setNumTotDoc(numTotDoc);
 					dgcLogInfo.setNumDocFlusso(trustList.size());
 					for (TrustListDto trustListDto:trustList) {
-						TrustedPartyEntity trustedPartyEntity = trustedPartyRepository.getByKid(trustListDto.getKid());
+						SignerInformationEntity trustedPartyEntity = trustedPartyRepository.getByKid(trustListDto.getKid());
 						if (trustedPartyEntity!=null) {
 							//I certificati già presenti nel DB vengono riabilitati
 							trustedPartyEntity.setRevoked(false);
 							trustedPartyEntity.setRevokedDate(null);
+							trustedPartyEntity.setRevokedBatchTag(null);
 							numOldDoc++;
 						} else {
 							//I certificati non presenti nel DB vengono inseriti e flaggati da pubblicare
 							boolean verifiedSign = batchSignatureVerifier.verify(trustListDto.getRawData(), trustListDto.getSignature(), trustListDto.getThumbprint());
 							trustedPartyEntity = DgcMapper.trustListDtoToEntity(trustListDto);
-							trustedPartyEntity.setBatchTag(batchTag);
+							trustedPartyEntity.setDownloadBatchTag(batchTag);
 							trustedPartyEntity.setVerifiedSign(verifiedSign);
 							if (!verifiedSign) {
-								trustedPartyEntity.setToPublish(false);
 								numInvalidDoc++;
-							} else {
-								trustedPartyEntity.setToPublish(true);
 							}
 							numNewDoc++;
 						}
 						trustedPartyRepository.save(trustedPartyEntity);
 					}
-					dgcLogInfo.setNumRevokedDoc(numTotDoc - numNewDoc - numOldDoc);
+					dgcLogInfo.setNumInvalidDoc(numInvalidDoc);
+					dgcLogInfo.setNumRevokedDoc(numTotDoc - numNewDoc - numOldDoc - numInvalidDoc);
 				}
 			}
 
