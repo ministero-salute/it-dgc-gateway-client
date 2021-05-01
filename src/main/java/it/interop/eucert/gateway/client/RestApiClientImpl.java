@@ -159,8 +159,8 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 
 			if (respEntity.getStatusCode() == HttpStatus.OK) {
 				Gson gson = new Gson();
-				Type auditListType = new TypeToken<ArrayList<TrustListDto>>(){}.getType();
-				listTrust = gson.fromJson(new String(respEntity.getBody()), auditListType);
+				Type trustListType = new TypeToken<ArrayList<TrustListDto>>(){}.getType();
+				listTrust = gson.fromJson(new String(respEntity.getBody()), trustListType);
 			}
 			
 			restApiResponse = new RestApiResponse<List<TrustListDto>>(respEntity.getStatusCode(), headersToMap(respEntity.getHeaders()), listTrust);

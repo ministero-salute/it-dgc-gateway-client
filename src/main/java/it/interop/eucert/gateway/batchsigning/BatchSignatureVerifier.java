@@ -112,7 +112,7 @@ public class BatchSignatureVerifier {
 					
 					String thumbprintFromCert = ThumbPrintUtils.getThumbprint(signerCert);
 					
-					if (thumbprint.equalsIgnoreCase(thumbprintFromCert)) {
+					if (!thumbprint.equalsIgnoreCase(thumbprintFromCert)) {
 						log.error("Erore: signing certificate thumbprint dont match, thumbprint={}, thumbprintFromCert={}",
 								thumbprint, thumbprintFromCert);
 						return false;
