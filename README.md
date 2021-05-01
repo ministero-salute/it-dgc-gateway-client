@@ -65,7 +65,7 @@ environment:
     MONGO_DB_URI=mongodb://user:password@mongodb:27017/DGC-dev
 ```
 
-Also you need the DGCG (Digital Green Certificate Gateway) server running locally, you can install it from the public repo [European Federation Gateway Service](https://github.com/eu-digital-green-certificates/dgc-gateway).
+Also you need the DGCG (Digital Green Certificate Gateway) server running locally, you can install it from the public repo [Digital Green Certificate Gateway](https://github.com/eu-digital-green-certificates/dgc-gateway).
 
 To properly work the client needs also:
 
