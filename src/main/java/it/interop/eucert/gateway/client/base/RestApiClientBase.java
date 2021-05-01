@@ -52,6 +52,9 @@ import lombok.Getter;
 
 public class RestApiClientBase {
 
+	private static Integer connectTimeout = 3000;
+	private static Integer readTimeout = 3000;
+
 	@Getter
 	@Value("${dgc.base_url}")
 	private String baseUrl;
@@ -124,8 +127,8 @@ public class RestApiClientBase {
 		    CloseableHttpClient httpClient = clientBuilder.setSSLSocketFactory(sslConnectionSocketFactory).build();
 			
 			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-			requestFactory.setConnectTimeout(10000); // 10 seconds
-			requestFactory.setReadTimeout(10000); // 10 seconds
+			requestFactory.setConnectTimeout(connectTimeout);
+			requestFactory.setReadTimeout(readTimeout);
 			
 			restTemplate = new RestTemplate(requestFactory);
 			

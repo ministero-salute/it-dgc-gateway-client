@@ -35,7 +35,7 @@ import it.interop.eucert.gateway.entity.DgcLogInfo;
 import it.interop.eucert.gateway.entity.SignerInformationEntity;
 import it.interop.eucert.gateway.entity.SignerInvalidInformationEntity;
 import it.interop.eucert.gateway.entity.SignerUploadInformationEntity;
-import it.interop.eucert.gateway.mapper.DgcMapper;
+import it.interop.eucert.gateway.mapper.EucertMapper;
 import it.interop.eucert.gateway.repository.DgcLogRepository;
 import it.interop.eucert.gateway.repository.SignerInformationRepository;
 import it.interop.eucert.gateway.repository.SignerInvalidInformationRepository;
@@ -212,12 +212,12 @@ public class DgcWorker {
 							//I certificati non presenti nel DB vengono inseriti e flaggati da pubblicare
 							boolean verifiedSign = batchSignatureVerifier.verify(trustListDto.getRawData(), trustListDto.getSignature(), trustListDto.getThumbprint());
 							if (verifiedSign) {
-								trustedPartyEntity = DgcMapper.trustListDtoToEntity(trustListDto);
+								trustedPartyEntity = EucertMapper.trustListDtoToEntity(trustListDto);
 								trustedPartyEntity.setDownloadBatchTag(batchTag);
 								trustedPartyEntity.setIndex(++index);
 								signerInformationRepository.save(trustedPartyEntity);
 							} else {
-								SignerInvalidInformationEntity signerInvalidInformationEntity = DgcMapper.trustListDtoInvalidToEntity(trustListDto);
+								SignerInvalidInformationEntity signerInvalidInformationEntity = EucertMapper.invalidTrustListDtoToEntity(trustListDto);
 								signerInvalidInformationEntity.setDownloadBatchTag(batchTag);
 								signerInvalidInformationRepository.save(signerInvalidInformationEntity);
 								numInvalidDoc++;

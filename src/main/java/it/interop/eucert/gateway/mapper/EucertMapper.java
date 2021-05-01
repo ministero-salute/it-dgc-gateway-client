@@ -10,7 +10,7 @@ import it.interop.eucert.gateway.entity.SignerInvalidInformationEntity;
 import it.interop.eucert.gateway.repository.SignerInformationRepository;
 import lombok.Setter;
 
-public class DgcMapper {
+public class EucertMapper {
 	@Setter
 	public static String localCountry;
 
@@ -28,7 +28,7 @@ public class DgcMapper {
     	return trustedPartyEntity;
     };
 
-    public static SignerInvalidInformationEntity trustListDtoInvalidToEntity(TrustListDto trustList) {
+    public static SignerInvalidInformationEntity invalidTrustListDtoToEntity(TrustListDto trustList) {
     	SignerInvalidInformationEntity signerInvalidInformationEntity = null;
     	if (trustList != null) {
     		signerInvalidInformationEntity = new SignerInvalidInformationEntity();
@@ -41,20 +41,6 @@ public class DgcMapper {
     	}
     	return signerInvalidInformationEntity;
     };
-
-    
-    
-    public static List<SignerInformationEntity> trustListToTrustListDto(List<TrustListDto> trustList) {
-    	List<SignerInformationEntity> trustedPartyEntityList = null;
-    	if (trustList != null) {
-    		trustedPartyEntityList = new ArrayList<SignerInformationEntity>();
-    		for (TrustListDto trustListDto:trustList) {
-    			trustedPartyEntityList.add(trustListDtoToEntity(trustListDto));
-    		}
-    	}
-    	return null;
-    };
-    
     
     public static SignedCertificateDto signerInformationRepositoryToDto(SignerInformationRepository signerInformationRepository) {
     	SignedCertificateDto signedCertificateDto = new SignedCertificateDto();

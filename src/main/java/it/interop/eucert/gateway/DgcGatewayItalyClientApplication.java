@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import it.interop.eucert.gateway.mapper.DgcMapper;
+import it.interop.eucert.gateway.mapper.EucertMapper;
 
 @SpringBootApplication
 public class DgcGatewayItalyClientApplication {
@@ -29,7 +29,7 @@ public class DgcGatewayItalyClientApplication {
 	
 	@Value("${dgc.origin_country}")
 	private void setLocalCountry(String country) {
-		DgcMapper.setLocalCountry(country);
+		EucertMapper.setLocalCountry(country);
 	}
 	
 }
