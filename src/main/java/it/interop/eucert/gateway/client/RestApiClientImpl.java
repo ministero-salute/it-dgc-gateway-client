@@ -15,8 +15,11 @@
 package it.interop.eucert.gateway.client;
 
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +27,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -44,12 +48,11 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 
 	@Override
 	public RestApiResponse<String> postVerificationInformation(SignedCertificateDto cms, String countryCode) throws RestApiException {
-		String localVarPath = "/signerCertificate";
-
-		StringBuffer url = new StringBuffer(getBaseUrl()).append(localVarPath).append("?")
-				.append(REQUEST_PROP_COUNTRY).append("=").append(countryCode);
+		URI uri = UriComponentsBuilder.fromHttpUrl(new StringBuffer(getBaseUrl()).append("/signerCertificate").toString())
+				.queryParam(REQUEST_PROP_COUNTRY, countryCode)
+				.build().encode().toUri();
 		
-		log.info("START REST Client calling-> {}", url.toString());
+		log.info("START REST Client calling-> {}", uri.toString());
 
 		HttpHeaders headers = makeBaseHeaders();
 		headers.set(HttpHeaders.CONTENT_TYPE, "application/cms");
@@ -57,7 +60,7 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 		
 		HttpEntity<SignedCertificateDto> entity = new HttpEntity<SignedCertificateDto>(cms, headers);
 
-		ResponseEntity<Void> respEntity = getRestTemplate().exchange(url.toString(), HttpMethod.POST, entity, Void.class);
+		ResponseEntity<Void> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, Void.class);
 		
 		RestApiResponse<String> restApiResponse = null;
 
@@ -69,18 +72,17 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 			restApiResponse = new RestApiResponse<String>(respEntity.getStatusCode(), headersToMap(respEntity.getHeaders()), esito);
 		}
 
-		log.info("END REST Client calling-> {}", url.toString());
+		log.info("END REST Client calling-> {}", uri.toString());
 		return restApiResponse;
 	}
 
 	@Override
 	public RestApiResponse<String> revokeVerificationInformation(SignedCertificateDto cms, String countryCode) throws RestApiException {
-		String localVarPath = "/signerCertificate";
+		URI uri = UriComponentsBuilder.fromHttpUrl(new StringBuffer(getBaseUrl()).append("/signerCertificate").toString())
+				.queryParam(REQUEST_PROP_COUNTRY, countryCode)
+				.build().encode().toUri();
 
-		StringBuffer url = new StringBuffer(getBaseUrl()).append(localVarPath).append("?")
-				.append(REQUEST_PROP_COUNTRY).append("=").append(countryCode);
-		
-		log.info("START REST Client calling-> {}", url.toString());
+		log.info("START REST Client calling-> {}", uri.toString());
 
 		HttpHeaders headers = makeBaseHeaders();
 		headers.set(HttpHeaders.CONTENT_TYPE, "application/cms");
@@ -88,7 +90,7 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 		
 		HttpEntity<SignedCertificateDto> entity = new HttpEntity<SignedCertificateDto>(cms, headers);
 
-		ResponseEntity<Void> respEntity = getRestTemplate().exchange(url.toString(), HttpMethod.DELETE, entity, Void.class);
+		ResponseEntity<Void> respEntity = getRestTemplate().exchange(uri, HttpMethod.DELETE, entity, Void.class);
 		
 		RestApiResponse<String> restApiResponse = null;
 
@@ -100,51 +102,53 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 			restApiResponse = new RestApiResponse<String>(respEntity.getStatusCode(), headersToMap(respEntity.getHeaders()), esito);
 		}
 
-		log.info("END REST Client calling-> {}", url.toString());
+		log.info("END REST Client calling-> {}", uri.toString());
 		return restApiResponse;
 	}
 
 	@Override
 	public RestApiResponse<List<TrustListDto>> downloadTrustList() throws RestApiException {
-		String localVarPath = "/trustList";
+		URI uri = UriComponentsBuilder.fromHttpUrl(new StringBuffer(getBaseUrl()).append("/trustList").toString())
+				.build().encode().toUri();
 
-		StringBuffer url = new StringBuffer(getBaseUrl()).append(localVarPath);
-
-		return _downloadTrustList(url.toString());
+		return _downloadTrustList(uri);
 	}
 
 	@Override
 	public RestApiResponse<List<TrustListDto>> downloadTrustListFilteredByType(CertificateType type) throws RestApiException {
-		String localVarPath = "/trustList/{type}"
-				.replaceAll("\\{type\\}", type.name());
+		Map<String, String> urlParams = new HashMap<>();
+		urlParams.put("type", type.name());
 
-		StringBuffer url = new StringBuffer(getBaseUrl()).append(localVarPath);
-
-		return _downloadTrustList(url.toString());
+		URI uri = UriComponentsBuilder
+				.fromUriString(new StringBuffer(getBaseUrl()).append("/trustList/{type}").toString())
+				.buildAndExpand(urlParams).encode().toUri();
+		
+		return _downloadTrustList(uri);
 	}
 
 	@Override
 	public RestApiResponse<List<TrustListDto>> downloadTrustListFilteredByCountryAndType(CertificateType type, String countryCode) throws RestApiException {
-		String localVarPath = "/trustList/{type}/{country}"
-				.replaceAll("\\{type\\}", type.name())
-				.replaceAll("\\{country\\}", countryCode);
-		
-		StringBuffer url = new StringBuffer(getBaseUrl()).append(localVarPath);
+		Map<String, String> urlParams = new HashMap<>();
+		urlParams.put("type", type.name());
+		urlParams.put("country", countryCode);
 
-		return _downloadTrustList(url.toString());
+		URI uri = UriComponentsBuilder
+				.fromUriString(new StringBuffer(getBaseUrl()).append("/trustList/{type}/{country}").toString())
+				.buildAndExpand(urlParams).encode().toUri();
 
+		return _downloadTrustList(uri);
 	}
 
 	
-	private RestApiResponse<List<TrustListDto>> _downloadTrustList(String url) throws RestApiException {
-		log.info("START REST Client calling-> {}", url.toString());
+	private RestApiResponse<List<TrustListDto>> _downloadTrustList(URI uri) throws RestApiException {
+		log.info("START REST Client calling-> {}", uri.toString());
 
 		HttpHeaders headers = makeBaseHeaders();
 		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
 		
-		HttpEntity<String> entity = new HttpEntity<String>(null, headers);
+		HttpEntity<Void> entity = new HttpEntity<Void>(headers);
 
-		ResponseEntity<byte[]> respEntity = getRestTemplate().exchange(url.toString(), HttpMethod.GET, entity, byte[].class);
+		ResponseEntity<byte[]> respEntity = getRestTemplate().exchange(uri, HttpMethod.GET, entity, byte[].class);
 
 		RestApiResponse<List<TrustListDto>> restApiResponse = null;
 
@@ -163,7 +167,7 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 		}
 		
 
-		log.info("END REST Client calling-> {}", url.toString());
+		log.info("END REST Client calling-> {}", uri.toString());
 		return restApiResponse;
 	}
 	

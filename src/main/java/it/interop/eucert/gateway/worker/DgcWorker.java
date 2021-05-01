@@ -197,7 +197,6 @@ public class DgcWorker {
 					dgcLogInfo.setNumTotDoc(numTotDoc);
 					dgcLogInfo.setNumDocFlusso(trustList.size());
 					
-					//TODO 
 					Long index = signerInformationRepository.maxIndex();
 					
 					for (TrustListDto trustListDto:trustList) {
