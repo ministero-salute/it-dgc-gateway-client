@@ -20,7 +20,7 @@ import java.util.Date;
 import it.interop.eucert.gateway.entity.DgcLogEntity.OperationType;
 
 
-public class Util {
+public class EucertUtil {
 
 	public static String batchTagGenerator(OperationType operation) {
 		SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");

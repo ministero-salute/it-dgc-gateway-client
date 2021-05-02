@@ -40,7 +40,7 @@ import it.interop.eucert.gateway.repository.SignerInvalidInformationRepository;
 import it.interop.eucert.gateway.repository.SignerUploadInformationRepository;
 import it.interop.eucert.gateway.signing.CertificateSignatureVerifier;
 import it.interop.eucert.gateway.signing.SignatureGenerator;
-import it.interop.eucert.gateway.util.Util;
+import it.interop.eucert.gateway.util.EucertUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -116,7 +116,7 @@ public class DgcWorker {
 	@Transactional
 	private String send(SignerUploadInformationEntity signerInformationEntity) {
 		String report = null;
-		String batchTag = Util.batchTagGenerator(OperationType.UPLOAD);
+		String batchTag = EucertUtil.batchTagGenerator(OperationType.UPLOAD);
 
 		try {
 			
@@ -146,7 +146,7 @@ public class DgcWorker {
 	@Transactional
 	private String revoke(SignerUploadInformationEntity signerInformationEntity) {
 		String report = null;
-		String batchTag = Util.batchTagGenerator(OperationType.REVOKE);
+		String batchTag = EucertUtil.batchTagGenerator(OperationType.REVOKE);
 
 		try {
 			
@@ -178,7 +178,7 @@ public class DgcWorker {
 	private void download() {
 		String report = null;
 		
-		String batchTag = Util.batchTagGenerator(OperationType.DOWNLOAD);
+		String batchTag = EucertUtil.batchTagGenerator(OperationType.DOWNLOAD);
 		DgcLogInfo dgcLogInfo = new DgcLogInfo();
 		
 		try {

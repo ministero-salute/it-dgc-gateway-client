@@ -14,19 +14,13 @@
  */
 package it.interop.eucert.gateway.mapper;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import it.interop.eucert.gateway.dto.SignedCertificateDto;
 import it.interop.eucert.gateway.dto.TrustListDto;
 import it.interop.eucert.gateway.entity.SignerInformationEntity;
 import it.interop.eucert.gateway.entity.SignerInvalidInformationEntity;
 import it.interop.eucert.gateway.repository.SignerInformationRepository;
-import lombok.Setter;
 
 public class EucertMapper {
-	@Setter
-	public static String localCountry;
 
     public static SignerInformationEntity trustListDtoToEntity(TrustListDto trustList) {
     	SignerInformationEntity trustedPartyEntity = null;
