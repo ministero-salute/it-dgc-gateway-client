@@ -12,7 +12,7 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program. If not, see <https://www.gnu.org/licenses/>.   
  */
-package it.interop.eucert.gateway.batchsigning;
+package it.interop.eucert.gateway.signing;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -43,6 +43,7 @@ import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.Store;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -53,7 +54,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
-public class BatchSignatureVerifier {
+public class CertificateSignatureVerifier {
 
 	@Value("${truststore.jks.path}")
 	private String jksTrustPath;
@@ -66,7 +67,10 @@ public class BatchSignatureVerifier {
 
 	private PublicKey anchoPublicKey;
 
-	public BatchSignatureVerifier() {
+	@Autowired
+    private CertificateUtils certificateUtils;
+
+    public CertificateSignatureVerifier() {
 		Security.addProvider(new BouncyCastleProvider());
 
 	}
@@ -89,7 +93,7 @@ public class BatchSignatureVerifier {
 		try {
 			if (base64Signature != null) {
 				log.info("START Signature verification...");
-				final byte[] batchSignatureBytes = BatchSignatureUtils.b64ToBytes(base64Signature);
+				final byte[] batchSignatureBytes = CertificateSignatureUtils.b64ToBytes(base64Signature);
 
 				final CMSSignedData signedData = new CMSSignedData(getBatchBytes(rawData), batchSignatureBytes);
 				final SignerInformation signerInfo = getSignerInformation(signedData);
@@ -110,7 +114,7 @@ public class BatchSignatureVerifier {
 					}
 
 					
-					String thumbprintFromCert = ThumbPrintUtils.getThumbprint(signerCert);
+					String thumbprintFromCert = certificateUtils.getCertThumbprint(signerCert);
 					
 					if (!thumbprint.equalsIgnoreCase(thumbprintFromCert)) {
 						log.error("Erore: signing certificate thumbprint dont match, thumbprint={}, thumbprintFromCert={}",

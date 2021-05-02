@@ -12,7 +12,7 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program. If not, see <https://www.gnu.org/licenses/>.   
  */
-package it.interop.eucert.gateway.batchsigning;
+package it.interop.eucert.gateway.signing;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -102,7 +102,7 @@ public class SignatureGenerator {
 		}
 	}
 
-	public String getSignatureForBytes(final byte[] data) throws CMSException, IOException, BatchSignatureException {
+	public String getSignatureForBytes(final byte[] data) throws CMSException, IOException, CertificateSignatureException {
 		log.info("START Signature process");
 		HttpHeaders headers = new HttpHeaders();
 
@@ -124,16 +124,16 @@ public class SignatureGenerator {
 					return outputData.getSignature();
 				} else {
 					log.error("ERROR signature: empty body");
-					throw new BatchSignatureException(externalUrl+" return null");
+					throw new CertificateSignatureException(externalUrl+" return null");
 				}
 
 			} else {
 				log.error("ERROR signature: response code: "+respEntity.getStatusCode());
-				throw new BatchSignatureException(externalUrl+" return status code: "+respEntity.getStatusCode());
+				throw new CertificateSignatureException(externalUrl+" return status code: "+respEntity.getStatusCode());
 			}
 		} else {
 			log.error("ERROR signature: empty response");
-			throw new BatchSignatureException(externalUrl+" return null");
+			throw new CertificateSignatureException(externalUrl+" return null");
 		}
 	}
 }

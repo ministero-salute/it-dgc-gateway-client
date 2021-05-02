@@ -12,52 +12,52 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program. If not, see <https://www.gnu.org/licenses/>.   
  */
-package it.interop.eucert.gateway.batchsigning;
+package it.interop.eucert.gateway.signing;
 
 import java.util.List;
 import java.util.Map;
 
-public class BatchSignatureException extends Exception {
+public class CertificateSignatureException extends Exception {
 	private static final long serialVersionUID = 8799535509060274385L;
 	private int code = 0;
     private Map<String, List<String>> responseHeaders = null;
     private String responseBody = null;
 
-    public BatchSignatureException() {}
+    public CertificateSignatureException() {}
 
-    public BatchSignatureException(Throwable throwable) {
+    public CertificateSignatureException(Throwable throwable) {
         super(throwable);
     }
 
-    public BatchSignatureException(String message) {
+    public CertificateSignatureException(String message) {
         super(message);
     }
 
-    public BatchSignatureException(String message, Throwable throwable, int code, Map<String, List<String>> responseHeaders, String responseBody) {
+    public CertificateSignatureException(String message, Throwable throwable, int code, Map<String, List<String>> responseHeaders, String responseBody) {
         super(message, throwable);
         this.code = code;
         this.responseHeaders = responseHeaders;
         this.responseBody = responseBody;
     }
 
-    public BatchSignatureException(String message, int code, Map<String, List<String>> responseHeaders, String responseBody) {
+    public CertificateSignatureException(String message, int code, Map<String, List<String>> responseHeaders, String responseBody) {
         this(message, (Throwable) null, code, responseHeaders, responseBody);
     }
 
-    public BatchSignatureException(String message, Throwable throwable, int code, Map<String, List<String>> responseHeaders) {
+    public CertificateSignatureException(String message, Throwable throwable, int code, Map<String, List<String>> responseHeaders) {
         this(message, throwable, code, responseHeaders, null);
     }
 
-    public BatchSignatureException(int code, Map<String, List<String>> responseHeaders, String responseBody) {
+    public CertificateSignatureException(int code, Map<String, List<String>> responseHeaders, String responseBody) {
         this((String) null, (Throwable) null, code, responseHeaders, responseBody);
     }
 
-    public BatchSignatureException(int code, String message) {
+    public CertificateSignatureException(int code, String message) {
         super(message);
         this.code = code;
     }
 
-    public BatchSignatureException(int code, String message, Map<String, List<String>> responseHeaders, String responseBody) {
+    public CertificateSignatureException(int code, String message, Map<String, List<String>> responseHeaders, String responseBody) {
         this(code, message);
         this.responseHeaders = responseHeaders;
         this.responseBody = responseBody;

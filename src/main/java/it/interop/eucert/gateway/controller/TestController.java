@@ -20,9 +20,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import it.interop.eucert.gateway.batchsigning.BatchSignatureVerifier;
-import it.interop.eucert.gateway.batchsigning.SignatureGenerator;
 import it.interop.eucert.gateway.client.RestApiClient;
+import it.interop.eucert.gateway.signing.CertificateSignatureVerifier;
+import it.interop.eucert.gateway.signing.SignatureGenerator;
 import it.interop.eucert.gateway.worker.DgcWorker;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,7 +37,7 @@ public class TestController {
 	private SignatureGenerator signatureGenerator;
 	
 	@Autowired(required=true)
-	private BatchSignatureVerifier batchSignatureVerifier;
+	private CertificateSignatureVerifier batchSignatureVerifier;
 
 	@Autowired(required=true)
 	private DgcWorker efgsWorker;

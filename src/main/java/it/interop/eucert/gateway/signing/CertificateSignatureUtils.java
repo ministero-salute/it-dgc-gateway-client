@@ -12,7 +12,7 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program. If not, see <https://www.gnu.org/licenses/>.   
  */
-package it.interop.eucert.gateway.batchsigning;
+package it.interop.eucert.gateway.signing;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,12 +32,12 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * This class provides help methods used by {@link BatchSignatureVerifier} to
+ * This class provides help methods used by {@link CertificateSignatureVerifier} to
  * verify a batch signature.
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class BatchSignatureUtils {
+public class CertificateSignatureUtils {
 
 	/**
 	 * Extracts the information (e.g., keyData, rollingPeriod, origin, etc.) from a

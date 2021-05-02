@@ -22,8 +22,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.interop.eucert.gateway.batchsigning.BatchSignatureVerifier;
-import it.interop.eucert.gateway.batchsigning.SignatureGenerator;
 import it.interop.eucert.gateway.client.RestApiClient;
 import it.interop.eucert.gateway.client.base.RestApiException;
 import it.interop.eucert.gateway.client.base.RestApiResponse;
@@ -40,6 +38,8 @@ import it.interop.eucert.gateway.repository.DgcLogRepository;
 import it.interop.eucert.gateway.repository.SignerInformationRepository;
 import it.interop.eucert.gateway.repository.SignerInvalidInformationRepository;
 import it.interop.eucert.gateway.repository.SignerUploadInformationRepository;
+import it.interop.eucert.gateway.signing.CertificateSignatureVerifier;
+import it.interop.eucert.gateway.signing.SignatureGenerator;
 import it.interop.eucert.gateway.util.Util;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +75,7 @@ public class DgcWorker {
 	private SignatureGenerator signatureGenerator;
 
 	@Autowired(required=true)
-	private BatchSignatureVerifier batchSignatureVerifier;
+	private CertificateSignatureVerifier batchSignatureVerifier;
 	
 	@Scheduled(cron = "${dgc.worker.upload.schedul}")
 	@SchedulerLock(name = "DgcWorker_uploadWorker")
