@@ -48,7 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class SignatureGenerator {
+public class SignatureService {
 
 	@Value("${signature.external.url}")
 	private String externalUrl;

@@ -33,13 +33,13 @@ import it.interop.dgc.gateway.entity.SignerInformationEntity;
 import it.interop.dgc.gateway.entity.SignerInvalidInformationEntity;
 import it.interop.dgc.gateway.entity.SignerUploadInformationEntity;
 import it.interop.dgc.gateway.entity.DgcLogEntity.OperationType;
-import it.interop.dgc.gateway.mapper.EucertMapper;
+import it.interop.dgc.gateway.mapper.DgcMapper;
 import it.interop.dgc.gateway.repository.DgcLogRepository;
 import it.interop.dgc.gateway.repository.SignerInformationRepository;
 import it.interop.dgc.gateway.repository.SignerInvalidInformationRepository;
 import it.interop.dgc.gateway.repository.SignerUploadInformationRepository;
 import it.interop.dgc.gateway.signing.CertificateSignatureVerifier;
-import it.interop.dgc.gateway.signing.SignatureGenerator;
+import it.interop.dgc.gateway.signing.SignatureService;
 import it.interop.dgc.gateway.util.EucertUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +72,7 @@ public class DgcWorker {
 	private DgcLogRepository dgcLogRepository;
 
 	@Autowired(required=true)
-	private SignatureGenerator signatureGenerator;
+	private SignatureService signatureGenerator;
 
 	@Autowired(required=true)
 	private CertificateSignatureVerifier batchSignatureVerifier;
@@ -212,12 +212,12 @@ public class DgcWorker {
 							//I certificati non presenti nel DB vengono inseriti e flaggati da pubblicare
 							boolean verifiedSign = batchSignatureVerifier.verify(trustListDto.getRawData(), trustListDto.getSignature(), trustListDto.getThumbprint());
 							if (verifiedSign) {
-								trustedPartyEntity = EucertMapper.trustListDtoToEntity(trustListDto);
+								trustedPartyEntity = DgcMapper.trustListDtoToEntity(trustListDto);
 								trustedPartyEntity.setDownloadBatchTag(batchTag);
 								trustedPartyEntity.setIndex(++index);
 								signerInformationRepository.save(trustedPartyEntity);
 							} else {
-								SignerInvalidInformationEntity signerInvalidInformationEntity = EucertMapper.invalidTrustListDtoToEntity(trustListDto);
+								SignerInvalidInformationEntity signerInvalidInformationEntity = DgcMapper.invalidTrustListDtoToEntity(trustListDto);
 								signerInvalidInformationEntity.setDownloadBatchTag(batchTag);
 								signerInvalidInformationRepository.save(signerInvalidInformationEntity);
 								numInvalidDoc++;

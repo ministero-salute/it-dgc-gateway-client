@@ -20,7 +20,7 @@ import it.interop.dgc.gateway.entity.SignerInformationEntity;
 import it.interop.dgc.gateway.entity.SignerInvalidInformationEntity;
 import it.interop.dgc.gateway.repository.SignerInformationRepository;
 
-public class EucertMapper {
+public class DgcMapper {
 
     public static SignerInformationEntity trustListDtoToEntity(TrustListDto trustList) {
     	SignerInformationEntity trustedPartyEntity = null;
