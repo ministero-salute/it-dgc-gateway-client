@@ -53,9 +53,6 @@ public class DgcWorker {
 	@Value("${dgc.origin_country}")
 	private String originCountry;
 	
-	@Value("${dgc.data_retention_days}")
-	private String dataRetentionDays;
-
 	@Autowired(required=true)
 	private RestApiClient client;
 
