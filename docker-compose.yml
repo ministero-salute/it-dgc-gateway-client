@@ -4,7 +4,7 @@ services:
   backend:
     build: .
     image: it-dgc-gateway-client/client
-    container_name: it-dgc-dgc-gateway-client
+    container_name: it-dgc-gateway-client
     ports:
       - 8080:8080
     environment:
@@ -14,18 +14,17 @@ services:
       - PROXY_USER=user
       - PROXY_PWD=password
       - MONGO_DB_URI=mongodb://user:password@mongodd:27017/EGFSDB
-      - REDIS_URL=redis://:password@redis:15166
       - SIGN_EXTERNAL_URL=https://host/v1/sign
       - SSLDP_JKS_PATH=/security/sslclient/ssldp.jks
       - SSLDP_JKS_PASSWORD=password
       - SSLDP_CERT_PASSWORD=password
-      - EFGS_BASE_URL=https://acc-efgs-ws.tech.ec.europa.eu
-      - SSLEFGS_JKS_PATH=/security/sslclient/ssldgc.jks
-      - SSLEFGS_JKS_PASSWORD=password
-      - SSLEFGS_CERT_PASSWORD=password
+      - DGC_BASE_URL=https://acc-efgs-ws.tech.ec.europa.eu
+      - SSLDGC_JKS_PATH=/security/sslclient/ssldgc.jks
+      - SSLDGC_JKS_PASSWORD=password
+      - SSLDGC_CERT_PASSWORD=password
       - TRUST_JKS_PATH=/security/truststore/truststore.jks
       - TRUST_JKS_PASSWORD=password
-      - TRUST_EFGS_ANCHOR_ALIAS=anchor_alias
+      - TRUST_DGC_ANCHOR_ALIAS=anchor_alias
     volumes:
       - c:\security\sslclient:/security/sslclient
       - c:\security\truststore:/security/truststore
