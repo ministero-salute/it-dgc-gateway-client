@@ -22,7 +22,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TrustListDto {
+public class TrustListItemDto {
 
     private String kid;
     private ZonedDateTime timestamp;
@@ -31,5 +31,7 @@ public class TrustListDto {
     private String thumbprint;
     private String signature;
     private String rawData;
+    
+    private boolean verifiedSign;
 
 }

@@ -30,7 +30,9 @@ import java.util.Collection;
 import java.util.Date;
 
 import javax.annotation.PostConstruct;
+import java.security.cert.X509Certificate;
 
+import org.bouncycastle.cert.CertException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.CMSProcessableByteArray;
@@ -41,12 +43,15 @@ import org.bouncycastle.cms.SignerInformationStore;
 import org.bouncycastle.cms.SignerInformationVerifier;
 import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.util.Store;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import it.interop.dgc.gateway.dto.TrustListItemDto;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -65,7 +70,7 @@ public class CertificateSignatureVerifier {
 	@Value("${truststore.anchor.alias}")
 	private String trustAnchorAlias;
 
-	private PublicKey anchoPublicKey;
+	private X509CertificateHolder trustAnchor;
 
 	@Autowired
     private CertificateUtils certificateUtils;
@@ -80,7 +85,7 @@ public class CertificateSignatureVerifier {
 		try {
 			KeyStore anchorStore = KeyStore.getInstance("JKS");
 			anchorStore.load(new FileInputStream(jksTrustPath), jksTrustPassword.toCharArray());
-			anchoPublicKey = anchorStore.getCertificate(trustAnchorAlias).getPublicKey();
+			trustAnchor = certificateUtils.convertCertificate((X509Certificate) anchorStore.getCertificate(trustAnchorAlias));
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
 			log.error("Could not load EFGS-TrustAnchor from KeyStore.");
 			throw e;
@@ -88,145 +93,66 @@ public class CertificateSignatureVerifier {
 	}
 
 	
-	public boolean verify(final String rawData, final String base64Signature, final String thumbprint) {
-		
-		try {
-			if (base64Signature != null) {
-				log.info("START Signature verification...");
-				final byte[] batchSignatureBytes = CertificateSignatureUtils.b64ToBytes(base64Signature);
+	
+    public boolean trustListItemSignedByCa(TrustListItemDto certificate, TrustListItemDto certificateCa) {
+        ContentVerifierProvider verifier;
 
-				final CMSSignedData signedData = new CMSSignedData(getBatchBytes(rawData), batchSignatureBytes);
-				final SignerInformation signerInfo = getSignerInformation(signedData);
+        X509CertificateHolder ca = getCertificateFromTrustListItem(certificateCa);
+        try {
+            verifier = new JcaContentVerifierProviderBuilder().build(ca);
+        } catch (OperatorCreationException | CertificateException e) {
+            log.error("Failed to instantiate JcaContentVerifierProvider from cert. KID: {}, Country: {}",
+                certificate.getKid(), certificate.getCountry());
+            return false;
+        }
 
-				if (signerInfo != null) {
-					final X509CertificateHolder signerCert = getSignerCert(signedData.getCertificates(),
-							signerInfo.getSID());
+        X509CertificateHolder dcs;
+        try {
+            dcs = new X509CertificateHolder(Base64.getDecoder().decode(certificate.getRawData()));
+        } catch (IOException e) {
+            log.error("Could not parse certificate. KID: {}, Country: {}",
+                certificate.getKid(), certificate.getCountry());
+            return false;
+        }
 
-					if (signerCert == null) {
-						log.error("Erore: no signer certificate");
-						return false;
-					}
+        try {
+            return dcs.isSignatureValid(verifier);
+        } catch (CertException e) {
+            log.debug("Could not verify that certificate was issued by ca. Certificate: {}, CA: {}",
+                dcs.getSubject().toString(), ca.getSubject().toString());
+            return false;
+        }
+    }
 
-					if (!isCertNotExpired(signerCert)) {
-						log.error("Erore: signing certificate expired, certNotBefore={}, certNotAfter={}",
-								signerCert.getNotBefore(), signerCert.getNotAfter());
-						return false;
-					}
+    public boolean checkTrustAnchorSignature(TrustListItemDto trustListItem) {
+        SignedCertificateMessageParser parser = new SignedCertificateMessageParser(
+            trustListItem.getSignature(), trustListItem.getRawData());
 
-					
-					String thumbprintFromCert = certificateUtils.getCertThumbprint(signerCert);
-					
-					if (!thumbprint.equalsIgnoreCase(thumbprintFromCert)) {
-						log.error("Erore: signing certificate thumbprint dont match, thumbprint={}, thumbprintFromCert={}",
-								thumbprint, thumbprintFromCert);
-						return false;
-					}
-				
-					boolean verified = verifySignerInfo(signerInfo, signerCert);
+        if (parser.getParserState() != SignedCertificateMessageParser.ParserState.SUCCESS) {
+            log.error("Could not parse trustListItem CMS. ParserState: {}", parser.getParserState());
+            return false;
+        } else if (!parser.isSignatureVerified()) {
+            log.error("Could not verify trustListItem CMS Signature, KID: {}, Country: {}",
+                trustListItem.getKid(), trustListItem.getCountry());
+            return false;
+        }
 
-//					if (verified) {
-//						JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
-//						X509Certificate signerCertConv = converter.getCertificate(signerCert);
-//
-//						String signingCertificateFromData = BatchSignatureUtils.x509CertificateToPem(signerCertConv);
-//
-//						if (!signingCertificateFromData.equals(signingCertificate)) {
-//							log.error("Erore: Certificate do not match.");
-//							return false;
-//						}
-//
-//						verified = verifySigner(signingCertificateFromData, signingCertificateOperatorSignature);
-//					}
-					log.info("END Signature verification... verified: {}", verified);
-					return  verified;
-				}
+        return parser.getSigningCertificate().equals(trustAnchor);
+    }
 
-			}
+    private X509CertificateHolder getCertificateFromTrustListItem(TrustListItemDto trustListItem) {
+        byte[] decodedBytes = Base64.getDecoder().decode(trustListItem.getRawData());
 
-		} catch (CertificateException | CMSException e) {
-			log.error("Erore: Error verifying batch signature", e);
-		} catch (OperatorCreationException e) {
-			log.error("Erore: OperatorCreationException verifying batch signature", e);
-		}
-		return false;
-	}
-
-	private boolean verifySigner(String signingCertificateFromData, String signingCertificateOperatorSignature) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		Signature verifier = Signature.getInstance("SHA256with" + anchoPublicKey.getAlgorithm());
-		verifier.initVerify(anchoPublicKey);
-		verifier.update(signingCertificateFromData.getBytes());
-
-		byte[] signatureBytes = Base64.getDecoder().decode(signingCertificateOperatorSignature);
-
-		return verifier.verify(signatureBytes);
-	}
-
-//	private boolean allOriginsMatchingCertCountry(DiagnosisKeyBatch batch, X509CertificateHolder certificate) {
-//		String country = getCountryOfCertificate(certificate);
-//
-//		if (country == null) {
-//			return false;
-//		} else {
-//			return batch.getKeysList().stream().allMatch(key -> key.getOrigin().equals(country));
-//		}
-//	}
-
-	private boolean isCertNotExpired(X509CertificateHolder certificate) {
-		Date now = new Date();
-
-		return certificate.getNotBefore().before(now) && certificate.getNotAfter().after(now);
-	}
-
-//	private String getCountryOfCertificate(X509CertificateHolder certificate) {
-//		RDN[] rdns = certificate.getSubject().getRDNs(BCStyle.C);
-//		if (rdns.length != 1) {
-//			log.info("Certificate has no valid country attribute");
-//			return null;
-//		} else {
-//			return rdns[0].getFirst().getValue().toString();
-//		}
-//	}
-
-	private CMSProcessableByteArray getBatchBytes(String rawData) {
-		return new CMSProcessableByteArray(rawData.getBytes());
-	}
-
-	private SignerInformation getSignerInformation(final CMSSignedData signedData) {
-		final SignerInformationStore signerInfoStore = signedData.getSignerInfos();
-
-		if (signerInfoStore.size() > 0) {
-			return signerInfoStore.getSigners().iterator().next();
-		}
-		return null;
-	}
-
-	private X509CertificateHolder getSignerCert(final Store<X509CertificateHolder> certificatesStore,
-			final SignerId signerId) {
-		final Collection certCollection = certificatesStore.getMatches(signerId);
-
-		if (!certCollection.isEmpty()) {
-			return (X509CertificateHolder) certCollection.iterator().next();
-		}
-		return null;
-	}
-
-	private boolean verifySignerInfo(final SignerInformation signerInfo, final X509CertificateHolder signerCert)
-			throws CertificateException, OperatorCreationException, CMSException {
-		return signerInfo.verify(createSignerInfoVerifier(signerCert));
-	}
-
-	private SignerInformationVerifier createSignerInfoVerifier(final X509CertificateHolder signerCert)
-			throws OperatorCreationException, CertificateException {
-		return new JcaSimpleSignerInfoVerifierBuilder().setProvider(BouncyCastleProvider.PROVIDER_NAME)
-				.build(signerCert);
-	}
-
-//	public boolean validateDiagnosisKeyWithSignature(List<EfgsKey> efgsKeys, Audit audit) {
-//		EfgsProto.DiagnosisKeyBatch diagnosisKeyBatchPerCountry = EfgsProto.DiagnosisKeyBatch.newBuilder()
-//				.addAllKeys(DiagnosisKeyMapper.efgsKeyToProto(efgsKeys)).build();
-//
-//		return verify(diagnosisKeyBatchPerCountry, audit.getBatchSignature(),
-//				audit.getSigningCertificateOperatorSignature(), audit.getSigningCertificate());
-//	}
-
+        try {
+            return new X509CertificateHolder(decodedBytes);
+        } catch (IOException e) {
+            log.error("Failed to parse Certificate Raw Data. KID: {}, Country: {}",
+                trustListItem.getKid(), trustListItem.getCountry());
+            return null;
+        }
+    }	
+	
+	
+	
+	
 }

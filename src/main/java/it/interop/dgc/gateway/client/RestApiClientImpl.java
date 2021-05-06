@@ -35,8 +35,7 @@ import com.google.gson.reflect.TypeToken;
 import it.interop.dgc.gateway.client.base.RestApiClientBase;
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
-import it.interop.dgc.gateway.dto.SignedCertificateDto;
-import it.interop.dgc.gateway.dto.TrustListDto;
+import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.enums.CertificateType;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +46,7 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
     public static final String REQUEST_PROP_THUMBPRINT = "reqPropCertThumbprint";
 
 	@Override
-	public RestApiResponse<String> postVerificationInformation(SignedCertificateDto cms, String countryCode) throws RestApiException {
+	public RestApiResponse<String> postVerificationInformation(String cms, String countryCode) throws RestApiException {
 		URI uri = UriComponentsBuilder.fromHttpUrl(new StringBuffer(getBaseUrl()).append("/signerCertificate").toString())
 				.queryParam(REQUEST_PROP_COUNTRY, countryCode)
 				.build().encode().toUri();
@@ -58,7 +57,7 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 		headers.set(HttpHeaders.CONTENT_TYPE, "application/cms");
 		headers.set(HttpHeaders.CONTENT_ENCODING, "base64");
 		
-		HttpEntity<SignedCertificateDto> entity = new HttpEntity<SignedCertificateDto>(cms, headers);
+		HttpEntity<String> entity = new HttpEntity<String>(cms, headers);
 
 		ResponseEntity<Void> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, Void.class);
 		
@@ -77,7 +76,7 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 	}
 
 	@Override
-	public RestApiResponse<String> revokeVerificationInformation(SignedCertificateDto cms, String countryCode) throws RestApiException {
+	public RestApiResponse<String> revokeVerificationInformation(String cms, String countryCode) throws RestApiException {
 		URI uri = UriComponentsBuilder.fromHttpUrl(new StringBuffer(getBaseUrl()).append("/signerCertificate").toString())
 				.queryParam(REQUEST_PROP_COUNTRY, countryCode)
 				.build().encode().toUri();
@@ -88,7 +87,7 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 		headers.set(HttpHeaders.CONTENT_TYPE, "application/cms");
 		headers.set(HttpHeaders.CONTENT_ENCODING, "base64");
 		
-		HttpEntity<SignedCertificateDto> entity = new HttpEntity<SignedCertificateDto>(cms, headers);
+		HttpEntity<String> entity = new HttpEntity<String>(cms, headers);
 
 		ResponseEntity<Void> respEntity = getRestTemplate().exchange(uri, HttpMethod.DELETE, entity, Void.class);
 		
@@ -107,7 +106,7 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 	}
 
 	@Override
-	public RestApiResponse<List<TrustListDto>> downloadTrustList() throws RestApiException {
+	public RestApiResponse<List<TrustListItemDto>> downloadTrustList() throws RestApiException {
 		URI uri = UriComponentsBuilder.fromHttpUrl(new StringBuffer(getBaseUrl()).append("/trustList").toString())
 				.build().encode().toUri();
 
@@ -115,7 +114,7 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 	}
 
 	@Override
-	public RestApiResponse<List<TrustListDto>> downloadTrustListFilteredByType(CertificateType type) throws RestApiException {
+	public RestApiResponse<List<TrustListItemDto>> downloadTrustListFilteredByType(CertificateType type) throws RestApiException {
 		Map<String, String> urlParams = new HashMap<>();
 		urlParams.put("type", type.name());
 
@@ -127,7 +126,7 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 	}
 
 	@Override
-	public RestApiResponse<List<TrustListDto>> downloadTrustListFilteredByCountryAndType(CertificateType type, String countryCode) throws RestApiException {
+	public RestApiResponse<List<TrustListItemDto>> downloadTrustListFilteredByCountryAndType(CertificateType type, String countryCode) throws RestApiException {
 		Map<String, String> urlParams = new HashMap<>();
 		urlParams.put("type", type.name());
 		urlParams.put("country", countryCode);
@@ -140,7 +139,7 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 	}
 
 	
-	private RestApiResponse<List<TrustListDto>> _downloadTrustList(URI uri) throws RestApiException {
+	private RestApiResponse<List<TrustListItemDto>> _downloadTrustList(URI uri) throws RestApiException {
 		log.info("START REST Client calling-> {}", uri.toString());
 
 		HttpHeaders headers = makeBaseHeaders();
@@ -150,20 +149,20 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 
 		ResponseEntity<byte[]> respEntity = getRestTemplate().exchange(uri, HttpMethod.GET, entity, byte[].class);
 
-		RestApiResponse<List<TrustListDto>> restApiResponse = null;
+		RestApiResponse<List<TrustListItemDto>> restApiResponse = null;
 
-		List<TrustListDto> listTrust = null;
+		List<TrustListItemDto> listTrust = null;
 		if (respEntity != null) {
 
 			log.info("REST Client response-> {}", respEntity.getStatusCode());
 
 			if (respEntity.getStatusCode() == HttpStatus.OK) {
 				Gson gson = new Gson();
-				Type trustListType = new TypeToken<ArrayList<TrustListDto>>(){}.getType();
+				Type trustListType = new TypeToken<ArrayList<TrustListItemDto>>(){}.getType();
 				listTrust = gson.fromJson(new String(respEntity.getBody()), trustListType);
 			}
 			
-			restApiResponse = new RestApiResponse<List<TrustListDto>>(respEntity.getStatusCode(), headersToMap(respEntity.getHeaders()), listTrust);
+			restApiResponse = new RestApiResponse<List<TrustListItemDto>>(respEntity.getStatusCode(), headersToMap(respEntity.getHeaders()), listTrust);
 		}
 		
 

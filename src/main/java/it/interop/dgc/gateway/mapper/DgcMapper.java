@@ -14,15 +14,13 @@
  */
 package it.interop.dgc.gateway.mapper;
 
-import it.interop.dgc.gateway.dto.SignedCertificateDto;
-import it.interop.dgc.gateway.dto.TrustListDto;
+import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.entity.SignerInformationEntity;
 import it.interop.dgc.gateway.entity.SignerInvalidInformationEntity;
-import it.interop.dgc.gateway.repository.SignerInformationRepository;
 
 public class DgcMapper {
 
-    public static SignerInformationEntity trustListDtoToEntity(TrustListDto trustList) {
+    public static SignerInformationEntity trustListDtoToEntity(TrustListItemDto trustList) {
     	SignerInformationEntity trustedPartyEntity = null;
     	if (trustList != null) {
     		trustedPartyEntity = new SignerInformationEntity();
@@ -36,7 +34,7 @@ public class DgcMapper {
     	return trustedPartyEntity;
     };
 
-    public static SignerInvalidInformationEntity invalidTrustListDtoToEntity(TrustListDto trustList) {
+    public static SignerInvalidInformationEntity invalidTrustListDtoToEntity(TrustListItemDto trustList) {
     	SignerInvalidInformationEntity signerInvalidInformationEntity = null;
     	if (trustList != null) {
     		signerInvalidInformationEntity = new SignerInvalidInformationEntity();
@@ -50,10 +48,4 @@ public class DgcMapper {
     	return signerInvalidInformationEntity;
     };
     
-    public static SignedCertificateDto signerInformationRepositoryToDto(SignerInformationRepository signerInformationRepository) {
-    	SignedCertificateDto signedCertificateDto = new SignedCertificateDto();
-    	
-    	return signedCertificateDto;
-    }
-
 }

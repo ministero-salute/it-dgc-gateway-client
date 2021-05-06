@@ -20,10 +20,17 @@ import java.util.Date;
 import it.interop.dgc.gateway.entity.DgcLogEntity.OperationType;
 
 
-public class EucertUtil {
+public class DscUtil {
+	public static Integer CONNECT_TIMEOUT_DEFAULT = 30000;
+	public static Integer READ_TIMEOUT_DEFAULT = 30000;
+
 
 	public static String batchTagGenerator(OperationType operation) {
 		SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
 		return operation.name().concat("-").concat(df.format(new Date()));
+	}
+	
+	public static int parseWithDefault(String s, int defaultVal) {
+	    return s.matches("-?\\d+") ? Integer.parseInt(s) : defaultVal;   
 	}
 }

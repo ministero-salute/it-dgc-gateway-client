@@ -102,14 +102,14 @@ public class SignatureService {
 		}
 	}
 
-	public String getSignatureForBytes(final byte[] data) throws CMSException, IOException, CertificateSignatureException {
+	public String getSignatureForBytes(final String data) throws CMSException, IOException, CertificateSignatureException {
 		log.info("START Signature process");
 		HttpHeaders headers = new HttpHeaders();
 
 		headers.set("User-Agent", "");
 		headers.set("Content-Type", "application/json");
 		
-		InputData inputData = new InputData(Base64.getEncoder().encodeToString(data));
+		InputData inputData = new InputData(data);
 		
 		HttpEntity<InputData> entity = new HttpEntity<InputData>(inputData, headers);
 

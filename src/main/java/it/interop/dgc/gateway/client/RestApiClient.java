@@ -20,8 +20,7 @@ import org.springframework.http.HttpStatus;
 
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
-import it.interop.dgc.gateway.dto.SignedCertificateDto;
-import it.interop.dgc.gateway.dto.TrustListDto;
+import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.enums.CertificateType;
 
 public interface RestApiClient {
@@ -72,10 +71,10 @@ public interface RestApiClient {
 	public static HttpStatus UPLOAD_STATUS_RETRY_500 = HttpStatus.INTERNAL_SERVER_ERROR;
 	
 	//UPLOAD
-	public RestApiResponse<String> postVerificationInformation(SignedCertificateDto cms, String countryCode)  throws RestApiException;
-	public RestApiResponse<String> revokeVerificationInformation(SignedCertificateDto cms, String countryCode)  throws RestApiException;
+	public RestApiResponse<String> postVerificationInformation(String cms, String countryCode)  throws RestApiException;
+	public RestApiResponse<String> revokeVerificationInformation(String cms, String countryCode)  throws RestApiException;
 	//DOWNLOAD
-	public RestApiResponse<List<TrustListDto>> downloadTrustList()  throws RestApiException;
-	public RestApiResponse<List<TrustListDto>> downloadTrustListFilteredByType(CertificateType type)  throws RestApiException;
-	public RestApiResponse<List<TrustListDto>> downloadTrustListFilteredByCountryAndType(CertificateType type, String countryCode) throws RestApiException;
+	public RestApiResponse<List<TrustListItemDto>> downloadTrustList()  throws RestApiException;
+	public RestApiResponse<List<TrustListItemDto>> downloadTrustListFilteredByType(CertificateType type)  throws RestApiException;
+	public RestApiResponse<List<TrustListItemDto>> downloadTrustListFilteredByCountryAndType(CertificateType type, String countryCode) throws RestApiException;
 }

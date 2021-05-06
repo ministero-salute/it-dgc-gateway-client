@@ -74,16 +74,6 @@
 	    </dependency>
 
 	    <dependency>
-	      <groupId>com.google.protobuf</groupId>
-	      <artifactId>protobuf-java</artifactId>
-	      <version>${protobuf.version}</version>
-	    </dependency>
-	    <dependency>
-	      <groupId>com.googlecode.protobuf-java-format</groupId>
-	      <artifactId>protobuf-java-format</artifactId>
-	      <version>${protobuf-format.version}</version>
-	    </dependency>
-	    <dependency>
 	      <groupId>org.bouncycastle</groupId>
 	      <artifactId>bcpkix-jdk15on</artifactId>
 	      <version>${bcpkix.version}</version>
@@ -135,12 +125,6 @@
 		    <version>4.14.0</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
-		<dependency>
-		    <groupId>redis.clients</groupId>
-		    <artifactId>jedis</artifactId>
-		    <version>3.3.0</version>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/io.lettuce/lettuce-core -->
 		<dependency>
 		    <groupId>io.lettuce</groupId>
@@ -148,6 +132,18 @@
 		    <version>6.0.0.RELEASE</version>
 		</dependency>
 
+
+		<dependency>
+		    <groupId>com.akamai.edgegrid</groupId>
+		    <artifactId>edgegrid-signer-google-http-client</artifactId>
+		    <version>4.0.1</version>
+		</dependency>
+
+<dependency>
+    <groupId>com.akamai.edgegrid</groupId>
+    <artifactId>edgegrid-signer-apache-http-client</artifactId>
+    <version>4.0.1</version>
+</dependency>
 
 	</dependencies>
 

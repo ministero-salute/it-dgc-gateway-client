@@ -48,16 +48,20 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
+import it.interop.dgc.gateway.util.DscUtil;
 import lombok.Getter;
 
 public class RestApiClientBase {
 
-	private static Integer connectTimeout = 3000;
-	private static Integer readTimeout = 3000;
-
 	@Getter
 	@Value("${dgc.base_url}")
 	private String baseUrl;
+
+	@Value("${dgc.connectTimeout}")
+	private String connectTimeout;
+
+	@Value("${dgc.readTimeout}")
+	private String readTimeout;
 
 	@Value("${dgc.user_agent}")
 	private String userAgent;
@@ -127,10 +131,11 @@ public class RestApiClientBase {
 		    CloseableHttpClient httpClient = clientBuilder.setSSLSocketFactory(sslConnectionSocketFactory).build();
 			
 			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-			requestFactory.setConnectTimeout(connectTimeout);
-			requestFactory.setReadTimeout(readTimeout);
+			requestFactory.setConnectTimeout(DscUtil.parseWithDefault(connectTimeout, DscUtil.CONNECT_TIMEOUT_DEFAULT));
+			requestFactory.setReadTimeout(DscUtil.parseWithDefault(readTimeout, DscUtil.READ_TIMEOUT_DEFAULT));
 			
 			restTemplate = new RestTemplate(requestFactory);
+			
 			
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException | KeyManagementException | IOException e) {
 			throw new RestApiException(e);
