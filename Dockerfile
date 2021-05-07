@@ -23,9 +23,9 @@ RUN useradd \
         --home /it-dgc-gateway-client \
         --shell /bin/bash \
         dgc \
-    && chown --recursive immuni:root /it-dgc-gateway-client \   
+    && chown --recursive dgc:root /it-dgc-gateway-client \   
     && chmod -R g+rwx /it-dgc-gateway-client
-USER immuni
+USER dgc
 
 
 ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /it-dgc-gateway-client/app.jar --spring.config.location=file:/it-dgc-gateway-client/config/application.properties" ]
