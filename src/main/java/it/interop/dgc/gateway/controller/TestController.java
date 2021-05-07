@@ -21,8 +21,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.interop.dgc.gateway.client.RestApiClient;
-import it.interop.dgc.gateway.signing.CertificateSignatureVerifier;
-import it.interop.dgc.gateway.signing.SignatureService;
 import it.interop.dgc.gateway.worker.DgcWorker;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,12 +30,6 @@ public class TestController {
 
 	@Autowired(required=true)
 	RestApiClient client;
-
-	@Autowired(required=true)
-	private SignatureService signatureGenerator;
-	
-	@Autowired(required=true)
-	private CertificateSignatureVerifier batchSignatureVerifier;
 
 	@Autowired(required=true)
 	private DgcWorker efgsWorker;

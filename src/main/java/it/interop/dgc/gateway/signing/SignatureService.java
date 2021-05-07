@@ -23,7 +23,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.Base64;
 
 import javax.annotation.PostConstruct;
 
@@ -43,6 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import it.interop.dgc.gateway.client.base.RestApiException;
+import it.interop.dgc.gateway.util.DscUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,6 +52,12 @@ public class SignatureService {
 
 	@Value("${signature.external.url}")
 	private String externalUrl;
+
+	@Value("${signature.external.connectTimeout}")
+	private String connectTimeout;
+
+	@Value("${signature.external.readTimeout}")
+	private String readTimeout;
 
 	@Value("${ssldp.jks.path}")
 	private String jksPath;
@@ -92,8 +98,8 @@ public class SignatureService {
 		    CloseableHttpClient httpClient = clientBuilder.setSSLSocketFactory(sslConnectionSocketFactory).build();
 			
 			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-			requestFactory.setConnectTimeout(10000); // 10 seconds
-			requestFactory.setReadTimeout(10000); // 10 seconds
+			requestFactory.setConnectTimeout(DscUtil.parseWithDefault(connectTimeout, DscUtil.CONNECT_TIMEOUT_DEFAULT));
+			requestFactory.setReadTimeout(DscUtil.parseWithDefault(readTimeout, DscUtil.READ_TIMEOUT_DEFAULT));
 			
 			restTemplate = new RestTemplate(requestFactory);
 			

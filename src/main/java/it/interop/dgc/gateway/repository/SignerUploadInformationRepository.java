@@ -14,7 +14,6 @@
  */
 package it.interop.dgc.gateway.repository;
 
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
-import it.interop.dgc.gateway.entity.SignerInformationEntity;
 import it.interop.dgc.gateway.entity.SignerUploadInformationEntity;
 
 @Repository
@@ -47,7 +45,9 @@ public class SignerUploadInformationRepository {
 
 	public List<SignerUploadInformationEntity> getSignerInformationToRevoke() {
 		Query query = new Query();
-		query.addCriteria(Criteria.where("revoked").is(true)).addCriteria(Criteria.where("batch_tag").exists(true)).addCriteria(Criteria.where("batch_tag_revoke").is(null));
+		query.addCriteria(Criteria.where("revoked").is(true))
+		.addCriteria(Criteria.where("batch_tag").exists(true))
+		.addCriteria(Criteria.where("batch_tag_revoke").is(null));
 //		query.fields().include("_id");
 		List<SignerUploadInformationEntity> kets = mongoTemplate.find(query, SignerUploadInformationEntity.class);
 		return kets;
