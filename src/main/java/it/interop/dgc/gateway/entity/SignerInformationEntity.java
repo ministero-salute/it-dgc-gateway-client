@@ -40,7 +40,7 @@ public class SignerInformationEntity implements Serializable {
     private String id;
 
     @Field(name="id")
-    private Long index;
+    private Long resumeToken;
     
     @Field(name="kid")
     private String kid;

@@ -91,12 +91,6 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 		</dependency>
-		<!-- Lombok reduce "Boilerplate" code -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<scope>provided</scope>
-		</dependency>
 
 
         <dependency>
@@ -132,18 +126,11 @@
 		    <version>6.0.0.RELEASE</version>
 		</dependency>
 
-
 		<dependency>
 		    <groupId>com.akamai.edgegrid</groupId>
-		    <artifactId>edgegrid-signer-google-http-client</artifactId>
+		    <artifactId>edgegrid-signer-apache-http-client</artifactId>
 		    <version>4.0.1</version>
 		</dependency>
-
-<dependency>
-    <groupId>com.akamai.edgegrid</groupId>
-    <artifactId>edgegrid-signer-apache-http-client</artifactId>
-    <version>4.0.1</version>
-</dependency>
 
 	</dependencies>
 

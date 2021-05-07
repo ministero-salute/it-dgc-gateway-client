@@ -186,8 +186,12 @@ public class DgcWorker {
 		String report = null;
 		
 		String batchTag = DscUtil.batchTagGenerator(OperationType.DOWNLOAD);
-		DgcLogInfo dgcLogInfo = new DgcLogInfo();
+		List<DgcLogInfo> dgcLogInfoList = new ArrayList<DgcLogInfo>();
 		
+		Integer numCsca = 0;
+		Integer numDsc = 0;
+		Integer numRevoked = 0;
+
 		try {
 			RestApiResponse<List<TrustListItemDto>> resp = client.downloadTrustList();
 			report = resp.getStatusCode().toString();
@@ -195,17 +199,14 @@ public class DgcWorker {
 			if (resp.getStatusCode() == RestApiClient.DOWNLOAD_STATUS_RETURNS_BATCH_200) {
 				
 				if (resp.getData() != null) {
-					//Revoco tutti icertificati
-					Integer numNewDoc = 0;
-					Integer numInvalidDoc = 0;
-					Integer numOldDoc = 0;
-					Integer numTotDoc = signerInformationRepository.setAllTrustedPartyRevoked(batchTag);
+					//Verifica firme
 					List<TrustListItemDto> trustList = resp.getData();
 					
 					List<TrustListItemDto> trustListCsca = trustList.stream()
 							.filter(csca -> csca.getCertificateType() == CertificateType.CSCA)
 							.collect(Collectors.toList());
 
+					//Verifica firme CSCA
 					if (trustListCsca != null && trustListCsca.size() > 0) {
 						trustListCsca.forEach(csca -> {
 							csca.setVerifiedSign(signatureVerifier.checkTrustAnchorSignature(csca));
@@ -215,6 +216,7 @@ public class DgcWorker {
 								.filter(dsc -> dsc.getCertificateType() == CertificateType.DSC)
 								.collect(Collectors.toList());
 						
+						//Verifica firme DSC
 						if (trustListDsc != null && trustListDsc.size() > 0) {
 							trustListDsc.forEach(dsc-> {
 								dsc.setVerifiedSign(false);
@@ -233,45 +235,44 @@ public class DgcWorker {
 							});
 						}
 
-						dgcLogInfo.setNumTotDoc(numTotDoc);
-						dgcLogInfo.setNumDocFlusso(trustList.size());
-						
-						Long index = signerInformationRepository.maxIndex();
-						
+						Integer numTotDoc = signerInformationRepository.setAllTrustedPartyRevoked(batchTag);
+						numCsca = trustListCsca.size();
+						numDsc = trustListDsc.size();
+						numRevoked = numTotDoc - numDsc - numCsca;
+
+						Long resumeToken = signerInformationRepository.maxResumeToken();
+
 						for (TrustListItemDto trustListItemDto:trustList) {
+							DgcLogInfo dgcLogInfo = new DgcLogInfo(trustListItemDto);
 							SignerInformationEntity trustedPartyEntity = signerInformationRepository.getByKid(trustListItemDto.getKid());
+							dgcLogInfo.setAlreadyExists(trustedPartyEntity!=null);
 							if (trustedPartyEntity!=null) {
 								//I certificati già presenti nel DB vengono riabilitati
 								trustedPartyEntity.setRevoked(false);
 								trustedPartyEntity.setRevokedDate(null);
 								trustedPartyEntity.setRevokedBatchTag(null);
 								signerInformationRepository.save(trustedPartyEntity);
-								numOldDoc++;
 							} else {
 								//I certificati non presenti nel DB vengono inseriti e flaggati da pubblicare
 								if (trustListItemDto.isVerifiedSign()) {
 									trustedPartyEntity = DgcMapper.trustListDtoToEntity(trustListItemDto);
 									trustedPartyEntity.setDownloadBatchTag(batchTag);
-									trustedPartyEntity.setIndex(++index);
+									trustedPartyEntity.setResumeToken(++resumeToken);
 									signerInformationRepository.save(trustedPartyEntity);
 								} else {
 									SignerInvalidInformationEntity signerInvalidInformationEntity = DgcMapper.invalidTrustListDtoToEntity(trustListItemDto);
 									signerInvalidInformationEntity.setDownloadBatchTag(batchTag);
 									signerInvalidInformationRepository.save(signerInvalidInformationEntity);
-									numInvalidDoc++;
 								}
-								numNewDoc++;
 							}
+							dgcLogInfoList.add(dgcLogInfo);
 						}
-						dgcLogInfo.setNumInvalidDoc(numInvalidDoc);
-						dgcLogInfo.setNumRevokedDoc(numTotDoc - numNewDoc - numOldDoc - numInvalidDoc);
 						
 					}
 					
 				}
 				
-				akamaiFastPurge();
-				
+				akamaiFastPurge.invalidateUrls();				
 			}
 
 		} catch (RestApiException e) {
@@ -280,19 +281,10 @@ public class DgcWorker {
 		}
 		log.info("Download INFO after reciving -> batchTag: {} ", batchTag);
 
-		dgcLogRepository.save(DgcLogEntity.buildDownloadDgcLog(originCountry, batchTag, dgcLogInfo, report));
+		dgcLogRepository.save(DgcLogEntity.buildDownloadDgcLog(originCountry, batchTag, report, dgcLogInfoList, numCsca, numDsc, numRevoked));
 		
 		
 		
 	}
-	
-	
-	private boolean akamaiFastPurge() {
-		List arrayList = new ArrayList<String>();
-		arrayList.add("*****-Actual-url-you-want-to-purge*****");
-		return akamaiFastPurge.invalidateUrls(arrayList);
-	}
-	
-	
 	
 }

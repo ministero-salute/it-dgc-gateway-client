@@ -14,15 +14,32 @@
  */
 package it.interop.dgc.gateway.entity;
 
+import org.springframework.data.mongodb.core.mapping.Field;
+
+import it.interop.dgc.gateway.dto.TrustListItemDto;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class DgcLogInfo {
-	private Integer numDocFlusso = 0;
-	private Integer numNewDoc = 0;
-	private Integer numInvalidDoc = 0;
-	private Integer numOldDoc = 0;
-	private Integer numRevokedDoc = 0;
-	private Integer numTotDoc = 0;
+
+    @Field(name="kid")
+    private String kid;
+    
+	@Field("country")
+	private String country;
+
+	@Field("verified_sign")
+	private boolean verifiedSign;
+	
+	@Field("already_exists")
+	private boolean alreadyExists;
+
+	public DgcLogInfo(TrustListItemDto trustListItemDto) {
+		this.kid = trustListItemDto.getKid();
+		this.country = trustListItemDto.getCountry();
+		this.verifiedSign = trustListItemDto.isVerifiedSign();
+	}
 	
 }

@@ -16,7 +16,7 @@ package it.interop.dgc.gateway.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Map;
+import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
@@ -44,8 +44,17 @@ public class DgcLogEntity implements Serializable {
 	private String country;
 
 	@Field("log_info")
-	private DgcLogInfo dgcLogInfo;
+	private List<DgcLogInfo> dgcLogInfoList;
 	
+	@Field("dsc")
+	private Integer dsc = 0;
+
+	@Field("csca")
+	private Integer csca = 0;
+
+	@Field("revoked")
+	private Integer revoked = 0;
+
 	@Field("execution")
 	private Date execution;
 
@@ -61,25 +70,31 @@ public class DgcLogEntity implements Serializable {
 	public DgcLogEntity() {
 	}
 	
-	private DgcLogEntity(OperationType operation, String country, String batchTag, DgcLogInfo dgcLogInfo,
+	private DgcLogEntity(OperationType operation, String country, String batchTag,
 			Date execution, String executionReport) {
 		this.operation = operation;
 		this.country = country;
-		this.dgcLogInfo = dgcLogInfo;
 		this.execution = execution;
 		this.executionReport = executionReport;
 	}
 
 	public static DgcLogEntity buildUploadDgcLog(String country, String batchTag, String executionReport) {
-		return new DgcLogEntity(DgcLogEntity.OperationType.UPLOAD, country, batchTag, null, new Date(), executionReport);
+		return new DgcLogEntity(DgcLogEntity.OperationType.UPLOAD, country, batchTag,  new Date(), executionReport);
 	}
 
 	public static DgcLogEntity buildRevokeDgcLog(String country, String batchTag, String executionReport) {
-		return new DgcLogEntity(DgcLogEntity.OperationType.REVOKE, country, batchTag, null, new Date(), executionReport);
+		return new DgcLogEntity(DgcLogEntity.OperationType.REVOKE, country, batchTag, new Date(), executionReport);
 	}
 
-	public static DgcLogEntity buildDownloadDgcLog(String country, String batchTag, DgcLogInfo dgcLogInfo, String executionReport) {
-		return new DgcLogEntity(DgcLogEntity.OperationType.DOWNLOAD, country, batchTag, dgcLogInfo, new Date(), executionReport);
+	public static DgcLogEntity buildDownloadDgcLog(String country, String batchTag, String executionReport, 
+			List<DgcLogInfo> dgcLogInfoList, Integer numCsca, Integer numDsc, Integer numRevoked) {
+		DgcLogEntity dgcLogEntity = new DgcLogEntity(DgcLogEntity.OperationType.DOWNLOAD, country, batchTag, new Date(), executionReport);
+		dgcLogEntity.dgcLogInfoList = dgcLogInfoList;
+		dgcLogEntity.csca = numCsca;
+		dgcLogEntity.dsc = numDsc;
+		dgcLogEntity.revoked = numRevoked;
+
+		return dgcLogEntity;
 	}
 	
 	

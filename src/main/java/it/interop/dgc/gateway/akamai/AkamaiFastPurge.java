@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -34,7 +33,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.akamai.edgegrid.signer.ClientCredential;
 import com.akamai.edgegrid.signer.apachehttpclient.ApacheHttpClientEdgeGridInterceptor;
 import com.akamai.edgegrid.signer.apachehttpclient.ApacheHttpClientEdgeGridRoutePlanner;
-import com.google.api.client.util.Maps;
 import com.google.gson.Gson;
 
 import it.interop.dgc.gateway.client.base.RestApiException;
@@ -52,6 +50,9 @@ public class AkamaiFastPurge {
 	
 	@Value("${akamai.network}")
 	private String network;
+	
+	@Value("${akamai.cpcodes_to_purge}")
+	private String cpcodes;
 
 	@Value("${akamai.user_agent}")
 	private String userAgent;
@@ -138,7 +139,7 @@ public class AkamaiFastPurge {
 		restTemplate = new RestTemplate(requestFactory);		
 	}
 
-    public boolean invalidateUrls(List<String> urls) {
+    public boolean invalidateUrls() {
     	HttpStatus status = HttpStatus.NOT_IMPLEMENTED;
     	
 		Map<String, String> urlParams = new HashMap<>();
@@ -156,7 +157,7 @@ public class AkamaiFastPurge {
 		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
 		headers.set(HttpHeaders.ACCEPT, "application/json");
 		
-		HttpEntity<String> entity = new HttpEntity<String>(getStringRequestBody(urls), headers);
+		HttpEntity<String> entity = new HttpEntity<String>(getStringRequestBody(cpcodes.split(",")), headers);
 
 		ResponseEntity<Void> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, Void.class);
 		
@@ -169,8 +170,8 @@ public class AkamaiFastPurge {
 		return status == HttpStatus.OK;
     }
 
-    public static String getStringRequestBody(List<String> cpcodes) {
-        Map<String, List<String>> akamaiRequestMap = Maps.newHashMap();
+    public static String getStringRequestBody(String[] cpcodes) {
+        Map<String, String[]> akamaiRequestMap = new HashMap<String, String[]>();
         akamaiRequestMap.put("objects", cpcodes);
         return new Gson().toJson(akamaiRequestMap);
     }

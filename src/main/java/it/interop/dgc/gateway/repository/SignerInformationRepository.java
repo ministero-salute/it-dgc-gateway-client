@@ -43,27 +43,28 @@ public class SignerInformationRepository {
 		return mongoTemplate.findOne(query, SignerInformationEntity.class);
 	}
 
+	//TODO ottimizzare query per revoca
 	public int setAllTrustedPartyRevoked(String revokedBatchTag) {
 		int numDoc = 0;
 		List<SignerInformationEntity> trustedPartyList = mongoTemplate.findAll(SignerInformationEntity.class);
 		if (trustedPartyList!=null) {
-			numDoc = trustedPartyList.size();
 			for (SignerInformationEntity trustedParty:trustedPartyList) {
 				if (!trustedParty.isRevoked()) {
 					trustedParty.setRevoked(true);
 					trustedParty.setRevokedDate(new Date());
 					trustedParty.setRevokedBatchTag(revokedBatchTag);
 					mongoTemplate.save(trustedParty);
+					numDoc++;
 				}
 			}
 		}
 		return numDoc;
 	}
 	
-	public Long maxIndex() {
+	public Long maxResumeToken() {
 		Query query = new Query().with(Sort.by("id").descending()).limit(1);
 		SignerInformationEntity ret = mongoTemplate.findOne(query, SignerInformationEntity.class);
-        return (ret == null || ret.getIndex() == null) ? 0 : ret.getIndex();
+        return (ret == null || ret.getResumeToken() == null) ? 0 : ret.getResumeToken();
     }
 	
 	
