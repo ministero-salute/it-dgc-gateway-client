@@ -17,7 +17,6 @@ package it.interop.dgc.gateway.worker;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.bouncycastle.cms.CMSException;
@@ -50,7 +49,6 @@ import it.interop.dgc.gateway.signing.SignatureService;
 import it.interop.dgc.gateway.util.DscUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 @Slf4j
 @Service
@@ -85,7 +83,6 @@ public class DgcWorker {
 	private AkamaiFastPurge akamaiFastPurge;
 	
 	@Scheduled(cron = "${dgc.worker.upload.schedul}")
-	@SchedulerLock(name = "DgcWorker_uploadWorker")
 	public void uploadWorker() {
 		log.info("@@@  UPLOAD -> START Processing upload. @@@");
 
@@ -110,7 +107,6 @@ public class DgcWorker {
 
 	
 	@Scheduled(cron = "${dgc.worker.download.schedul}")
-	@SchedulerLock(name = "DgcWorker_downloadWorker")
 	public void downloadWorker() {
 		log.info("###  DOWNLOAD -> START Processing download. ###");
 		download();

@@ -6,6 +6,7 @@ target/
 
 ### JAVA ###
 application-dev.properties
+TestController.java
 
 ### STS ###
 .apt_generated
