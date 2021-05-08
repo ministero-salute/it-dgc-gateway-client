@@ -23,11 +23,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import it.interop.dgc.gateway.enums.CertificateType;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 @Document(collection = "signer_invalid_information")
 public class SignerInvalidInformationEntity implements Serializable {
 	private static final long serialVersionUID = 5989282342501802070L;

@@ -26,7 +26,7 @@ public class DscUtil {
 
 
 	public static String batchTagGenerator(OperationType operation) {
-		SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
+		SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd-HHmmss");
 		return operation.name().concat("-").concat(df.format(new Date()));
 	}
 	

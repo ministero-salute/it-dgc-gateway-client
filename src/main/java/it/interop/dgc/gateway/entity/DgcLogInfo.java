@@ -21,7 +21,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 public class DgcLogInfo {
 
     @Field(name="kid")

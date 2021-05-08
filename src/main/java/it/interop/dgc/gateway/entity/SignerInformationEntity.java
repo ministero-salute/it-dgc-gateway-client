@@ -23,15 +23,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import it.interop.dgc.gateway.enums.CertificateType;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
-//@CompoundIndexes({
-//    @CompoundIndex(name = "signer_information_kid_1", def = "{'kid' : 1}"),
-//    @CompoundIndex(name = "signer_information_id_1", def = "{'id' : 1}")
-//})
+@Data
 @Document(collection = "signer_information")
 public class SignerInformationEntity implements Serializable {
 	private static final long serialVersionUID = 5989282342501802070L;
