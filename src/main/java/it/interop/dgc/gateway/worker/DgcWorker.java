@@ -268,7 +268,9 @@ public class DgcWorker {
 					
 				}
 				
-				akamaiFastPurge.invalidateUrls();				
+				if (akamaiFastPurge.getBaseUrl()!=null && !"".equals(akamaiFastPurge.getBaseUrl())) {
+					akamaiFastPurge.invalidateUrls();				
+				}
 			}
 
 		} catch (RestApiException e) {

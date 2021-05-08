@@ -101,42 +101,44 @@ public class AkamaiFastPurge {
 	@PostConstruct
 	private void initRestTactory() throws RestApiException, GeneralSecurityException, IOException {
  
-		SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
-		sslContextBuilder.loadTrustMaterial(new File(jksTrustPath), jksTrustPassword.toCharArray());
-		SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContextBuilder.build());
-
-        ClientCredential credential = ClientCredential.builder()
-				.accessToken(accessToken)
-				.clientToken(clientToken)
-				.clientSecret(clientSecret)
-				.host(host)
-				.build();
-		
-	    HttpClientBuilder clientBuilder = HttpClientBuilder.create()
-	    		.setSSLSocketFactory(sslConnectionSocketFactory)
-		        .addInterceptorFirst(new ApacheHttpClientEdgeGridInterceptor(credential))
-		        .setRoutePlanner(new ApacheHttpClientEdgeGridRoutePlanner(credential));
-
-		if (!StringUtils.isEmpty(proxyHost) && !StringUtils.isEmpty(proxyPort)) {
-		    HttpHost myProxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort));
-
-		    clientBuilder.setProxy(myProxy);
-		    if (!StringUtils.isEmpty(proxyUser) && !StringUtils.isEmpty(proxyPassword)) {
-			    CredentialsProvider credsProvider = new BasicCredentialsProvider();
-			    credsProvider.setCredentials( 
-			        new AuthScope(proxyHost, Integer.parseInt(proxyPort)), 
-			        new UsernamePasswordCredentials(proxyUser, proxyPassword)
-			    );
-			    clientBuilder.setDefaultCredentialsProvider(credsProvider);
-		    }
+		if (baseUrl != null && !"".equals(baseUrl)) {
+			SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
+			sslContextBuilder.loadTrustMaterial(new File(jksTrustPath), jksTrustPassword.toCharArray());
+			SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContextBuilder.build());
+	
+	        ClientCredential credential = ClientCredential.builder()
+					.accessToken(accessToken)
+					.clientToken(clientToken)
+					.clientSecret(clientSecret)
+					.host(host)
+					.build();
+			
+		    HttpClientBuilder clientBuilder = HttpClientBuilder.create()
+		    		.setSSLSocketFactory(sslConnectionSocketFactory)
+			        .addInterceptorFirst(new ApacheHttpClientEdgeGridInterceptor(credential))
+			        .setRoutePlanner(new ApacheHttpClientEdgeGridRoutePlanner(credential));
+	
+			if (!StringUtils.isEmpty(proxyHost) && !StringUtils.isEmpty(proxyPort)) {
+			    HttpHost myProxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort));
+	
+			    clientBuilder.setProxy(myProxy);
+			    if (!StringUtils.isEmpty(proxyUser) && !StringUtils.isEmpty(proxyPassword)) {
+				    CredentialsProvider credsProvider = new BasicCredentialsProvider();
+				    credsProvider.setCredentials( 
+				        new AuthScope(proxyHost, Integer.parseInt(proxyPort)), 
+				        new UsernamePasswordCredentials(proxyUser, proxyPassword)
+				    );
+				    clientBuilder.setDefaultCredentialsProvider(credsProvider);
+			    }
+			}
+		    clientBuilder.disableCookieManagement();
+	
+			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
+			requestFactory.setConnectTimeout(DscUtil.parseWithDefault(connectTimeout, DscUtil.CONNECT_TIMEOUT_DEFAULT));
+			requestFactory.setReadTimeout(DscUtil.parseWithDefault(readTimeout, DscUtil.READ_TIMEOUT_DEFAULT));
+			
+			restTemplate = new RestTemplate(requestFactory);
 		}
-	    clientBuilder.disableCookieManagement();
-
-		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-		requestFactory.setConnectTimeout(DscUtil.parseWithDefault(connectTimeout, DscUtil.CONNECT_TIMEOUT_DEFAULT));
-		requestFactory.setReadTimeout(DscUtil.parseWithDefault(readTimeout, DscUtil.READ_TIMEOUT_DEFAULT));
-		
-		restTemplate = new RestTemplate(requestFactory);		
 	}
 
     public boolean invalidateUrls() {

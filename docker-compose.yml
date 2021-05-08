@@ -13,12 +13,12 @@ services:
       - PROXY_PORT=8080
       - PROXY_USER=user
       - PROXY_PWD=password
-      - MONGO_DB_URI=mongodb://user:password@mongodd:27017/EGFSDB
+      - MONGO_DB_URI=mongodb://user:password@mongodd:27017/DGCDB
       - SIGN_EXTERNAL_URL=https://host/v1/sign
       - SSLDP_JKS_PATH=/security/sslclient/ssldp.jks
       - SSLDP_JKS_PASSWORD=password
       - SSLDP_CERT_PASSWORD=password
-      - DGC_BASE_URL=https://acc-efgs-ws.tech.ec.europa.eu
+      - DGC_BASE_URL=https://acc-dgcg-ws.tech.ec.europa.eu
       - SSLDGC_JKS_PATH=/security/sslclient/ssldgc.jks
       - SSLDGC_JKS_PASSWORD=password
       - SSLDGC_CERT_PASSWORD=password
