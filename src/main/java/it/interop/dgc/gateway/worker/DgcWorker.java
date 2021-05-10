@@ -16,7 +16,10 @@ package it.interop.dgc.gateway.worker;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.bouncycastle.cms.CMSException;
@@ -25,12 +28,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 
 import it.interop.dgc.gateway.akamai.AkamaiFastPurge;
 import it.interop.dgc.gateway.client.RestApiClient;
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
+import it.interop.dgc.gateway.entity.DgcLogAmount;
 import it.interop.dgc.gateway.entity.DgcLogEntity;
 import it.interop.dgc.gateway.entity.DgcLogEntity.OperationType;
 import it.interop.dgc.gateway.entity.DgcLogInfo;
@@ -121,27 +126,30 @@ public class DgcWorker {
 		String report = null;
 		String batchTag = DscUtil.batchTagGenerator(OperationType.UPLOAD);
 
+		DgcLogInfo dgcLogInfo = new DgcLogInfo(signerInformationEntity);
 		try {
 			
 			if (signerInformationEntity != null) {
 				String signedCertificate = signatureService.getSignatureForBytes(signerInformationEntity.getRawData());
+				dgcLogInfo.setVerifiedSign(true);
+				
 				RestApiResponse<String> resp = client.postVerificationInformation(signedCertificate, originCountry);
 				report = resp.getStatusCode().toString();
 				
-				if (resp.getStatusCode() == RestApiClient.DOWNLOAD_STATUS_RETURNS_BATCH_200) {
+				if (resp.getStatusCode() == RestApiClient.UPLOAD_STATUS_CREATED_201) {
 					signerInformationEntity.setUploadBatchTag(batchTag);
 					signerUploadInformationRepository.save(signerInformationEntity);
 				}
 
 			}
 			
-		} catch (RestApiException | CMSException | IOException | CertificateSignatureException e) {
+		} catch (RestApiException | CMSException | IOException | CertificateSignatureException | HttpClientErrorException e) {
 			report = e.getMessage();
 			log.error("ERROR Processing upload RestApiException. -> batchTag: {} ", batchTag, e);
 		}
 		log.info("Upload INFO after sending -> batchTag: {} ", batchTag);
 		
-		dgcLogRepository.save(DgcLogEntity.buildUploadDgcLog(originCountry, batchTag, report));
+		dgcLogRepository.save(DgcLogEntity.buildUploadDgcLog(originCountry, batchTag, report, dgcLogInfo));
 		
 		return report;
 	}
@@ -151,27 +159,30 @@ public class DgcWorker {
 		String report = null;
 		String batchTag = DscUtil.batchTagGenerator(OperationType.REVOKE);
 
+		DgcLogInfo dgcLogInfo = new DgcLogInfo(signerInformationEntity);
 		try {
 			
 			if (signerInformationEntity != null) {
 				String signedCertificate = signatureService.getSignatureForBytes(signerInformationEntity.getRawData());
+				dgcLogInfo.setVerifiedSign(true);
+
 				RestApiResponse<String> resp = client.revokeVerificationInformation(signedCertificate, originCountry);
 				report = resp.getStatusCode().toString();
 				
-				if (resp.getStatusCode() == RestApiClient.DOWNLOAD_STATUS_RETURNS_BATCH_200) {
+				if (resp.getStatusCode() == RestApiClient.UPLOAD_STATUS_NO_CONTENT_204) {
 					signerInformationEntity.setRevokedBatchTag(batchTag);
 					signerUploadInformationRepository.save(signerInformationEntity);
 				}
 
 			}
 			
-		} catch (RestApiException | CMSException | IOException | CertificateSignatureException e) {
+		} catch (RestApiException | CMSException | IOException | CertificateSignatureException | HttpClientErrorException e) {
 			report = e.getMessage();
 			log.error("ERROR Processing upload RestApiException. -> batchTag: {} ", batchTag, e);
 		}
 		log.info("Upload INFO after sending -> batchTag: {} ", batchTag);
 		
-		dgcLogRepository.save(DgcLogEntity.buildRevokeDgcLog(originCountry, batchTag, report));
+		dgcLogRepository.save(DgcLogEntity.buildRevokeDgcLog(originCountry, batchTag, report, dgcLogInfo));
 		
 		return report;
 	}
@@ -180,14 +191,13 @@ public class DgcWorker {
 	@Transactional
 	private void download() {
 		String report = null;
+		String akamaiReport = null;
 		
 		String batchTag = DscUtil.batchTagGenerator(OperationType.DOWNLOAD);
 		List<DgcLogInfo> dgcLogInfoList = new ArrayList<DgcLogInfo>();
 		
-		Integer numCsca = 0;
-		Integer numDsc = 0;
-		Integer numRevoked = 0;
-
+		DgcLogAmount dgcLogAmount = new DgcLogAmount();
+		
 		try {
 			RestApiResponse<List<TrustListItemDto>> resp = client.downloadTrustList();
 			report = resp.getStatusCode().toString();
@@ -196,7 +206,9 @@ public class DgcWorker {
 				
 				if (resp.getData() != null) {
 					//Verifica firme
-					List<TrustListItemDto> trustList = resp.getData();
+					List<TrustListItemDto> trustList = resp.getData().stream()
+							.filter(cer -> cer.getCertificateType() == CertificateType.CSCA || cer.getCertificateType() == CertificateType.DSC)
+							.collect(Collectors.toList());
 					
 					List<TrustListItemDto> trustListCsca = trustList.stream()
 							.filter(csca -> csca.getCertificateType() == CertificateType.CSCA)
@@ -231,14 +243,23 @@ public class DgcWorker {
 							});
 						}
 
-						Integer numTotDoc = signerInformationRepository.setAllTrustedPartyRevoked(batchTag);
-						numCsca = trustListCsca.size();
-						numDsc = trustListDsc.size();
-						numRevoked = numTotDoc - numDsc - numCsca;
+						Integer numTotDocIntoDB = signerInformationRepository.setAllTrustedPartyRevoked(batchTag);
+						dgcLogAmount.setNumCsca(trustListCsca.size());
+						dgcLogAmount.setNumDsc(trustListDsc.size());
 
 						Long resumeToken = signerInformationRepository.maxResumeToken();
 
+						Map<String, Integer> test = new HashMap<String, Integer>();
+						
 						for (TrustListItemDto trustListItemDto:trustList) {
+							
+							if (!test.containsKey(trustListItemDto.getKid())) {
+								test.put(trustListItemDto.getKid(), 1);
+							} else {
+								test.put(trustListItemDto.getKid(), test.get(trustListItemDto.getKid())+1);
+							}
+							
+							
 							DgcLogInfo dgcLogInfo = new DgcLogInfo(trustListItemDto);
 							SignerInformationEntity trustedPartyEntity = signerInformationRepository.getByKid(trustListItemDto.getKid());
 							dgcLogInfo.setAlreadyExists(trustedPartyEntity!=null);
@@ -254,22 +275,44 @@ public class DgcWorker {
 									trustedPartyEntity = DgcMapper.trustListDtoToEntity(trustListItemDto);
 									trustedPartyEntity.setDownloadBatchTag(batchTag);
 									trustedPartyEntity.setResumeToken(++resumeToken);
+									trustedPartyEntity.setCreatedAt(new Date());
 									signerInformationRepository.save(trustedPartyEntity);
+									if (trustListItemDto.getCertificateType() == CertificateType.CSCA) {
+										dgcLogAmount.incNumNewCsca();
+									} else {
+										dgcLogAmount.incNumNewDsc();
+									}
+									
 								} else {
 									SignerInvalidInformationEntity signerInvalidInformationEntity = DgcMapper.invalidTrustListDtoToEntity(trustListItemDto);
 									signerInvalidInformationEntity.setDownloadBatchTag(batchTag);
 									signerInvalidInformationRepository.save(signerInvalidInformationEntity);
+									if (trustListItemDto.getCertificateType() == CertificateType.CSCA) {
+										dgcLogAmount.incNumInvalidCsca();
+									} else {
+										dgcLogAmount.incNumInvalidDsc();
+									}
 								}
 							}
 							dgcLogInfoList.add(dgcLogInfo);
 						}
-						
+						Integer numRevoked = numTotDocIntoDB 
+								- (dgcLogAmount.getNumCsca() - dgcLogAmount.getNumNewCsca()) 
+								- (dgcLogAmount.getNumDsc() - dgcLogAmount.getNumNewDsc());
+						dgcLogAmount.setNumRevoked((numRevoked > 0 ? numRevoked : 0));
+
+						log.error("ERROR Invalidating akamai cache. -> Test map: {} ", test);
 					}
 					
 				}
 				
-				if (akamaiFastPurge.getBaseUrl()!=null && !"".equals(akamaiFastPurge.getBaseUrl())) {
-					akamaiFastPurge.invalidateUrls();				
+				try {
+					if (akamaiFastPurge.getBaseUrl()!=null && !"".equals(akamaiFastPurge.getBaseUrl())) {
+						akamaiReport = akamaiFastPurge.invalidateUrls();
+					}
+				} catch(Exception e) {
+					akamaiReport = "ERROR INVALIDATING AKAMAI CACHE";
+					log.error("ERROR Invalidating akamai cache. -> batchTag: {} ", batchTag, e);
 				}
 			}
 
@@ -279,10 +322,7 @@ public class DgcWorker {
 		}
 		log.info("Download INFO after reciving -> batchTag: {} ", batchTag);
 
-		dgcLogRepository.save(DgcLogEntity.buildDownloadDgcLog(originCountry, batchTag, report, dgcLogInfoList, numCsca, numDsc, numRevoked));
-		
-		
-		
+		dgcLogRepository.save(DgcLogEntity.buildDownloadDgcLog("ALL", batchTag, report, akamaiReport, dgcLogInfoList, dgcLogAmount));
 	}
 	
 }

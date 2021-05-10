@@ -19,18 +19,16 @@
  */
 package it.interop.dgc.gateway.dto;
 
-import java.time.ZonedDateTime;
+import java.util.Date;
 
 import it.interop.dgc.gateway.enums.CertificateType;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class TrustListItemDto {
 
     private String kid;
-    private ZonedDateTime timestamp;
+    private Date timestamp;
     private String country;
     private CertificateType certificateType;
     private String thumbprint;

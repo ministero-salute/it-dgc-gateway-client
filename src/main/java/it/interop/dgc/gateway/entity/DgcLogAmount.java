@@ -18,39 +18,60 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.enums.CertificateType;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
-public class DgcLogInfo {
+public class DgcLogAmount {
 
-    @Field(name="kid")
-    private String kid;
+    @Field(name="num_csca")
+	private Integer numCsca = 0;
     
-	@Field("country")
-	private String country;
 
-    @Field(name = "certificate_type")
-    private CertificateType certificateType;
+	@Field(name="num_dsc")
+    private Integer numDsc = 0;
     
-	@Field("verified_sign")
-	private boolean verifiedSign;
-	
-	@Field("already_exists")
-	private boolean alreadyExists;
+    @Field(name="num_new_csca")
+    private Integer numNewCsca = 0;
+    
+    @Field(name="num_new_dsc")
+    private Integer numNewDsc = 0;
+    
+    @Field(name="num_invalid_csca")
+    private Integer numInvalidCsca = 0;
+    
+    private @Field(name="num_invalid_dsc")
+	Integer numInvalidDsc = 0;
+    
+    private @Field(name="num_revoked")
+	Integer numRevoked = 0;
 
-	public DgcLogInfo(TrustListItemDto trustListItemDto) {
-		this.kid = trustListItemDto.getKid();
-		this.country = trustListItemDto.getCountry();
-		this.certificateType = trustListItemDto.getCertificateType();
-		this.verifiedSign = trustListItemDto.isVerifiedSign();
+    
+    public Integer incNumCsca() {
+		return ++numCsca;
 	}
-	
-	public DgcLogInfo(SignerUploadInformationEntity signerUploadInformationEntity) {
-		this.kid = signerUploadInformationEntity.getKid();
-		this.country = signerUploadInformationEntity.getCountry();
-		this.certificateType = signerUploadInformationEntity.getCertificateType();
+
+	public Integer incNumDsc() {
+		return ++numDsc;
 	}
-	
+
+	public Integer incNumNewCsca() {
+		return ++numNewCsca;
+	}
+
+	public Integer incNumNewDsc() {
+		return ++numNewDsc;
+	}
+
+	public Integer incNumInvalidCsca() {
+		return ++numInvalidCsca;
+	}
+
+	public Integer incNumInvalidDsc() {
+		return ++numInvalidDsc;
+	}
+
+	public Integer incNumRevoked() {
+		return ++numRevoked;
+	}
+    
 }

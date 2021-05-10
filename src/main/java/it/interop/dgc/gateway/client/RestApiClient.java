@@ -40,21 +40,10 @@ public interface RestApiClient {
 	//Date for download expired. Date does not more exists. KO
 	public static HttpStatus DOWNLOAD_STATUS_EXPIRED_DATE_410 = HttpStatus.GONE;
 
-	//OK. Returns the audit information to the selected batch.
-	public static HttpStatus AUDIT_STATUS_RETURNS_AUDIT_200 = HttpStatus.OK;
-	//Invalid BatchTag used.
-	public static HttpStatus AUDIT_STATUS_INVALID_BATCHTAG_400 = HttpStatus.BAD_REQUEST;
-	//Forbidden call in cause of missing or invalid client certificate.
-	public static HttpStatus AUDIT_STATUS_FORBIDDEN_403 = HttpStatus.FORBIDDEN;
-	//BatchTag not found or no data exists.
-	public static HttpStatus AUDIT_STATUS_BATCHTAG_NOT_FOUND_404 = HttpStatus.NOT_FOUND;
-	//Data format or content is not valid.
-	public static HttpStatus AUDIT_STATUS_INVALID_CONTENT_406 = HttpStatus.NOT_ACCEPTABLE;
-	//Date for download expired. Date does not more exists.
-	public static HttpStatus AUDIT_STATUS_EXPIRED_DATE_410 = HttpStatus.GONE;
-
 	//Database Entries created. - OK marked as sent
 	public static HttpStatus UPLOAD_STATUS_CREATED_201 = HttpStatus.CREATED;
+	//OK. Returns selected batch. - OK store data and try downloading next batch
+	public static HttpStatus UPLOAD_STATUS_NO_CONTENT_204 = HttpStatus.NO_CONTENT;
 	//Data partially added with warnings. More details in document. - OK marked as sent
 	public static HttpStatus UPLOAD_STATUS_WARNING_207 = HttpStatus.MULTI_STATUS;
 	//Signature not valid. Bad request. - KO retry

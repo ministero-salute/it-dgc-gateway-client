@@ -141,7 +141,7 @@ public class AkamaiFastPurge {
 		}
 	}
 
-    public boolean invalidateUrls() {
+    public String invalidateUrls() {
     	HttpStatus status = HttpStatus.NOT_IMPLEMENTED;
     	
 		Map<String, String> urlParams = new HashMap<>();
@@ -161,7 +161,7 @@ public class AkamaiFastPurge {
 		
 		HttpEntity<String> entity = new HttpEntity<String>(getStringRequestBody(cpcodes.split(",")), headers);
 
-		ResponseEntity<Void> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, Void.class);
+		ResponseEntity<String> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, String.class);
 		
 		if (respEntity != null) {
 			status = respEntity.getStatusCode();
@@ -169,7 +169,7 @@ public class AkamaiFastPurge {
 
 		log.info("END REST AkamaiFastPurge status-> {}", status);
 
-		return status == HttpStatus.OK;
+		return status.name();
     }
 
     public static String getStringRequestBody(String[] cpcodes) {
