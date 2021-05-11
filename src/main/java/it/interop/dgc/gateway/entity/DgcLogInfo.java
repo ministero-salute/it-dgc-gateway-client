@@ -48,8 +48,6 @@ public class DgcLogInfo {
 	}
 	
 	public DgcLogInfo(SignerUploadInformationEntity signerUploadInformationEntity) {
-		this.kid = signerUploadInformationEntity.getKid();
-		this.country = signerUploadInformationEntity.getCountry();
 		this.certificateType = signerUploadInformationEntity.getCertificateType();
 	}
 	

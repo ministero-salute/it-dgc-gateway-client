@@ -33,23 +33,8 @@ public class SignerUploadInformationEntity implements Serializable {
 	@Id
     private String id;
 
-    @Field(name="id")
-    private Long index;
-    
-    @Field(name="kid")
-    private String kid;
-    
-    @Field(name = "country")
-    private String country;
-
-    @Field(name = "thumbprint")
-    private String thumbprint;
-
     @Field(name = "raw_data")
     private String rawData;
-
-    @Field(name = "signature")
-    private String signature;
 
     @Field(name = "certificate_type")
     private CertificateType certificateType;

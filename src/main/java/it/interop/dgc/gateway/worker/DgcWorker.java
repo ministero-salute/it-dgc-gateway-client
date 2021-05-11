@@ -261,7 +261,7 @@ public class DgcWorker {
 							
 							
 							DgcLogInfo dgcLogInfo = new DgcLogInfo(trustListItemDto);
-							SignerInformationEntity trustedPartyEntity = signerInformationRepository.getByKid(trustListItemDto.getKid());
+							SignerInformationEntity trustedPartyEntity = signerInformationRepository.getByThumbprint(trustListItemDto.getThumbprint());
 							dgcLogInfo.setAlreadyExists(trustedPartyEntity!=null);
 							if (trustedPartyEntity!=null) {
 								//I certificati già presenti nel DB vengono riabilitati
@@ -274,12 +274,13 @@ public class DgcWorker {
 								if (trustListItemDto.isVerifiedSign()) {
 									trustedPartyEntity = DgcMapper.trustListDtoToEntity(trustListItemDto);
 									trustedPartyEntity.setDownloadBatchTag(batchTag);
-									trustedPartyEntity.setResumeToken(++resumeToken);
 									trustedPartyEntity.setCreatedAt(new Date());
 									signerInformationRepository.save(trustedPartyEntity);
 									if (trustListItemDto.getCertificateType() == CertificateType.CSCA) {
+										trustedPartyEntity.setResumeToken(null);
 										dgcLogAmount.incNumNewCsca();
 									} else {
+										trustedPartyEntity.setResumeToken(++resumeToken);
 										dgcLogAmount.incNumNewDsc();
 									}
 									

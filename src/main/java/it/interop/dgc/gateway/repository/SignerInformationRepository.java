@@ -37,9 +37,10 @@ public class SignerInformationRepository {
 		return mongoTemplate.save(signerInformationEntity);
 	}
 
-	public SignerInformationEntity getByKid(String kid) {
+	public SignerInformationEntity getByThumbprint(String thumbprint) {
 		Query query = new Query();
-		query.addCriteria(Criteria.where("kid").is(kid));
+		query.addCriteria(Criteria.where("thumbprint").is(thumbprint))
+			.addCriteria(Criteria.where("revoked").is(false));
 		return mongoTemplate.findOne(query, SignerInformationEntity.class);
 	}
 
