@@ -170,6 +170,7 @@ public class DgcWorker {
 				report = resp.getStatusCode().toString();
 				
 				if (resp.getStatusCode() == RestApiClient.UPLOAD_STATUS_NO_CONTENT_204) {
+					signerInformationEntity.setRevokedDate(new Date());
 					signerInformationEntity.setRevokedBatchTag(batchTag);
 					signerUploadInformationRepository.save(signerInformationEntity);
 				}
@@ -261,7 +262,7 @@ public class DgcWorker {
 							
 							
 							DgcLogInfo dgcLogInfo = new DgcLogInfo(trustListItemDto);
-							SignerInformationEntity trustedPartyEntity = signerInformationRepository.getByThumbprint(trustListItemDto.getThumbprint());
+							SignerInformationEntity trustedPartyEntity = signerInformationRepository.getByThumbprint(trustListItemDto.getThumbprint(), batchTag);
 							dgcLogInfo.setAlreadyExists(trustedPartyEntity!=null);
 							if (trustedPartyEntity!=null) {
 								//I certificati già presenti nel DB vengono riabilitati
@@ -275,7 +276,6 @@ public class DgcWorker {
 									trustedPartyEntity = DgcMapper.trustListDtoToEntity(trustListItemDto);
 									trustedPartyEntity.setDownloadBatchTag(batchTag);
 									trustedPartyEntity.setCreatedAt(new Date());
-									signerInformationRepository.save(trustedPartyEntity);
 									if (trustListItemDto.getCertificateType() == CertificateType.CSCA) {
 										trustedPartyEntity.setResumeToken(null);
 										dgcLogAmount.incNumNewCsca();
@@ -283,16 +283,16 @@ public class DgcWorker {
 										trustedPartyEntity.setResumeToken(++resumeToken);
 										dgcLogAmount.incNumNewDsc();
 									}
-									
+									signerInformationRepository.save(trustedPartyEntity);
 								} else {
 									SignerInvalidInformationEntity signerInvalidInformationEntity = DgcMapper.invalidTrustListDtoToEntity(trustListItemDto);
 									signerInvalidInformationEntity.setDownloadBatchTag(batchTag);
-									signerInvalidInformationRepository.save(signerInvalidInformationEntity);
 									if (trustListItemDto.getCertificateType() == CertificateType.CSCA) {
 										dgcLogAmount.incNumInvalidCsca();
 									} else {
 										dgcLogAmount.incNumInvalidDsc();
 									}
+									signerInvalidInformationRepository.save(signerInvalidInformationEntity);
 								}
 							}
 							dgcLogInfoList.add(dgcLogInfo);

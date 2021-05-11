@@ -37,10 +37,10 @@ public class SignerInformationRepository {
 		return mongoTemplate.save(signerInformationEntity);
 	}
 
-	public SignerInformationEntity getByThumbprint(String thumbprint) {
+	public SignerInformationEntity getByThumbprint(String thumbprint, String batchTag) {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("thumbprint").is(thumbprint))
-			.addCriteria(Criteria.where("revoked").is(false));
+			.addCriteria(Criteria.where("batch_tag_revoke").is(batchTag));
 		return mongoTemplate.findOne(query, SignerInformationEntity.class);
 	}
 
