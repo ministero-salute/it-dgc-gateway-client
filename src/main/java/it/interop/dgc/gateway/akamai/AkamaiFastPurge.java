@@ -1,11 +1,19 @@
 package it.interop.dgc.gateway.akamai;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.security.GeneralSecurityException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -16,6 +24,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +44,7 @@ import com.akamai.edgegrid.signer.apachehttpclient.ApacheHttpClientEdgeGridInter
 import com.akamai.edgegrid.signer.apachehttpclient.ApacheHttpClientEdgeGridRoutePlanner;
 import com.google.gson.Gson;
 
+
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.util.DscUtil;
 import lombok.Getter;
@@ -45,8 +55,8 @@ import lombok.extern.slf4j.Slf4j;
 public class AkamaiFastPurge {
 	
 	@Getter
-	@Value("${akamai.base_url}")
-	private String baseUrl;
+	@Value("${akamai.url}")
+	private String url;
 	
 	@Value("${akamai.network}")
 	private String network;
@@ -93,15 +103,13 @@ public class AkamaiFastPurge {
 	@Value("${proxy.password}")
 	private String proxyPassword;
 
-	private HttpClient httpClient;
-	
 	@Getter
 	private RestTemplate restTemplate;
 	
 	@PostConstruct
 	private void initRestTactory() throws RestApiException, GeneralSecurityException, IOException {
  
-		if (baseUrl != null && !"".equals(baseUrl)) {
+		if (url != null && !"".equals(url)) {
 			SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
 			sslContextBuilder.loadTrustMaterial(new File(jksTrustPath), jksTrustPassword.toCharArray());
 			SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContextBuilder.build());
@@ -115,8 +123,8 @@ public class AkamaiFastPurge {
 			
 		    HttpClientBuilder clientBuilder = HttpClientBuilder.create()
 		    		.setSSLSocketFactory(sslConnectionSocketFactory)
-			        .addInterceptorFirst(new ApacheHttpClientEdgeGridInterceptor(credential))
-			        .setRoutePlanner(new ApacheHttpClientEdgeGridRoutePlanner(credential));
+			        .addInterceptorFirst(new ApacheHttpClientEdgeGridInterceptor(credential));
+//			        .setRoutePlanner(new ApacheHttpClientEdgeGridRoutePlanner(credential));
 	
 			if (!StringUtils.isEmpty(proxyHost) && !StringUtils.isEmpty(proxyPort)) {
 			    HttpHost myProxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort));
@@ -132,7 +140,9 @@ public class AkamaiFastPurge {
 			    }
 			}
 		    clientBuilder.disableCookieManagement();
-	
+
+		    CloseableHttpClient httpClient = clientBuilder.setSSLSocketFactory(sslConnectionSocketFactory).build();
+
 			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
 			requestFactory.setConnectTimeout(DscUtil.parseWithDefault(connectTimeout, DscUtil.CONNECT_TIMEOUT_DEFAULT));
 			requestFactory.setReadTimeout(DscUtil.parseWithDefault(readTimeout, DscUtil.READ_TIMEOUT_DEFAULT));
@@ -142,14 +152,11 @@ public class AkamaiFastPurge {
 	}
 
     public String invalidateUrls() {
-    	HttpStatus status = HttpStatus.NOT_IMPLEMENTED;
+    	HttpStatus status = null;
     	
-		Map<String, String> urlParams = new HashMap<>();
-		urlParams.put("network", network);
-
 		URI uri = UriComponentsBuilder
-				.fromUriString(new StringBuffer(getBaseUrl()).append("/ccu/v3/invalidate/cpcode/{network}").toString())
-				.buildAndExpand(urlParams).encode().toUri();
+				.fromUriString(getUrl())
+				.build().toUri();
 
 		log.info("START REST AkamaiFastPurge calling-> {}", uri.toString());
 
@@ -157,11 +164,13 @@ public class AkamaiFastPurge {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(HttpHeaders.USER_AGENT, userAgent);
 		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
-		headers.set(HttpHeaders.ACCEPT, "application/json");
+//		headers.set(HttpHeaders.ACCEPT, "application/json");
 		
-		HttpEntity<String> entity = new HttpEntity<String>(getStringRequestBody(cpcodes.split(",")), headers);
+		
+		
+		HttpEntity<String> entity = new HttpEntity<String>(getStringRequestBody(cpcodes), headers);
 
-		ResponseEntity<String> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, String.class);
+		ResponseEntity<Void> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, Void.class);
 		
 		if (respEntity != null) {
 			status = respEntity.getStatusCode();
@@ -169,12 +178,13 @@ public class AkamaiFastPurge {
 
 		log.info("END REST AkamaiFastPurge status-> {}", status);
 
-		return status.name();
+		return status.toString();
     }
 
-    public static String getStringRequestBody(String[] cpcodes) {
-        Map<String, String[]> akamaiRequestMap = new HashMap<String, String[]>();
-        akamaiRequestMap.put("objects", cpcodes);
+    public static String getStringRequestBody(String cpcodes) {
+    	;
+        Map<String, int[]> akamaiRequestMap = new HashMap<String, int[]>();
+        akamaiRequestMap.put("objects", Stream.of(cpcodes.split(",")).mapToInt(Integer::parseInt).toArray());
         return new Gson().toJson(akamaiRequestMap);
     }
 

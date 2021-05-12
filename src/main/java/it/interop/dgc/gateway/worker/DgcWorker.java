@@ -250,17 +250,7 @@ public class DgcWorker {
 
 						Long resumeToken = signerInformationRepository.maxResumeToken();
 
-						Map<String, Integer> test = new HashMap<String, Integer>();
-						
 						for (TrustListItemDto trustListItemDto:trustList) {
-							
-							if (!test.containsKey(trustListItemDto.getKid())) {
-								test.put(trustListItemDto.getKid(), 1);
-							} else {
-								test.put(trustListItemDto.getKid(), test.get(trustListItemDto.getKid())+1);
-							}
-							
-							
 							DgcLogInfo dgcLogInfo = new DgcLogInfo(trustListItemDto);
 							SignerInformationEntity trustedPartyEntity = signerInformationRepository.getByThumbprint(trustListItemDto.getThumbprint(), batchTag);
 							dgcLogInfo.setAlreadyExists(trustedPartyEntity!=null);
@@ -301,14 +291,12 @@ public class DgcWorker {
 								- (dgcLogAmount.getNumCsca() - dgcLogAmount.getNumNewCsca()) 
 								- (dgcLogAmount.getNumDsc() - dgcLogAmount.getNumNewDsc());
 						dgcLogAmount.setNumRevoked((numRevoked > 0 ? numRevoked : 0));
-
-						log.error("ERROR Invalidating akamai cache. -> Test map: {} ", test);
 					}
 					
 				}
 				
 				try {
-					if (akamaiFastPurge.getBaseUrl()!=null && !"".equals(akamaiFastPurge.getBaseUrl())) {
+					if (akamaiFastPurge.getUrl()!=null && !"".equals(akamaiFastPurge.getUrl())) {
 						akamaiReport = akamaiFastPurge.invalidateUrls();
 					}
 				} catch(Exception e) {
