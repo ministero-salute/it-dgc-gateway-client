@@ -1,16 +1,9 @@
 package it.interop.dgc.gateway.akamai;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.security.GeneralSecurityException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -21,7 +14,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -41,9 +33,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.akamai.edgegrid.signer.ClientCredential;
 import com.akamai.edgegrid.signer.apachehttpclient.ApacheHttpClientEdgeGridInterceptor;
-import com.akamai.edgegrid.signer.apachehttpclient.ApacheHttpClientEdgeGridRoutePlanner;
 import com.google.gson.Gson;
-
 
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.util.DscUtil;

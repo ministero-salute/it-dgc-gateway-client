@@ -16,8 +16,6 @@ package it.interop.dgc.gateway.entity;
 
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import it.interop.dgc.gateway.dto.TrustListItemDto;
-import it.interop.dgc.gateway.enums.CertificateType;
 import lombok.Data;
 
 @Data
