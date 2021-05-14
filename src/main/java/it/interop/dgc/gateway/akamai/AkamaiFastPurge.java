@@ -33,6 +33,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.akamai.edgegrid.signer.ClientCredential;
 import com.akamai.edgegrid.signer.apachehttpclient.ApacheHttpClientEdgeGridInterceptor;
+import com.akamai.edgegrid.signer.apachehttpclient.ApacheHttpClientEdgeGridRoutePlanner;
 import com.google.gson.Gson;
 
 import it.interop.dgc.gateway.client.base.RestApiException;
@@ -113,8 +114,8 @@ public class AkamaiFastPurge {
 			
 		    HttpClientBuilder clientBuilder = HttpClientBuilder.create()
 		    		.setSSLSocketFactory(sslConnectionSocketFactory)
-			        .addInterceptorFirst(new ApacheHttpClientEdgeGridInterceptor(credential));
-//			        .setRoutePlanner(new ApacheHttpClientEdgeGridRoutePlanner(credential));
+			        .addInterceptorFirst(new ApacheHttpClientEdgeGridInterceptor(credential))
+			        .setRoutePlanner(new ApacheHttpClientEdgeGridRoutePlanner(credential));
 	
 			if (!StringUtils.isEmpty(proxyHost) && !StringUtils.isEmpty(proxyPort)) {
 			    HttpHost myProxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort));
