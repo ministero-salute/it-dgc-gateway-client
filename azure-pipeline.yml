@@ -26,6 +26,9 @@ resources:
 
 services:
   mongo: mongo
+ 
+workspace:
+  clean: all
 
 steps:
 - task: Maven@3
