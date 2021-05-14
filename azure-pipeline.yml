@@ -41,13 +41,13 @@ steps:
     effectivePomSkip: false
     sonarQubeRunAnalysis: false
 
-- task: BuildQualityChecks@8
-  inputs:
-    checkCoverage: true
-    coverageFailOption: 'fixed'
-    coverageType: 'lines'
-    treat0of0as100: true
-    coverageThreshold: '80'
+# - task: BuildQualityChecks@8
+#   inputs:
+#     checkCoverage: true
+#     coverageFailOption: 'fixed'
+#     coverageType: 'lines'
+#     treat0of0as100: true
+#     coverageThreshold: '80'
     
 - task: SonarQubePrepare@4
   inputs:
