@@ -114,8 +114,8 @@ public class AkamaiFastPurge {
 			
 		    HttpClientBuilder clientBuilder = HttpClientBuilder.create()
 		    		.setSSLSocketFactory(sslConnectionSocketFactory)
-			        .addInterceptorFirst(new ApacheHttpClientEdgeGridInterceptor(credential))
-			        .setRoutePlanner(new ApacheHttpClientEdgeGridRoutePlanner(credential));
+			        .addInterceptorFirst(new ApacheHttpClientEdgeGridInterceptor(credential));
+//			        .setRoutePlanner(new ApacheHttpClientEdgeGridRoutePlanner(credential));
 	
 			if (!StringUtils.isEmpty(proxyHost) && !StringUtils.isEmpty(proxyPort)) {
 			    HttpHost myProxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort));
