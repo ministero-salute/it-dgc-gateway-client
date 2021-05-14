@@ -33,7 +33,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.akamai.edgegrid.signer.ClientCredential;
 import com.akamai.edgegrid.signer.apachehttpclient.ApacheHttpClientEdgeGridInterceptor;
-import com.akamai.edgegrid.signer.apachehttpclient.ApacheHttpClientEdgeGridRoutePlanner;
 import com.google.gson.Gson;
 
 import it.interop.dgc.gateway.client.base.RestApiException;
