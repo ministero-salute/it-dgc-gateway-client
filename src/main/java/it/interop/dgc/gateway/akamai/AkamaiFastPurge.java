@@ -160,10 +160,11 @@ public class AkamaiFastPurge {
 		
 		HttpEntity<String> entity = new HttpEntity<String>(getStringRequestBody(cpcodes), headers);
 
-		ResponseEntity<Void> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, Void.class);
+		ResponseEntity<String> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, String.class);
 		
 		if (respEntity != null) {
 			status = respEntity.getStatusCode();
+			log.info("RESPONSE AkamaiFastPurge -> {}", respEntity.getBody());
 		}
 
 		log.info("END REST AkamaiFastPurge status-> {}", status);
