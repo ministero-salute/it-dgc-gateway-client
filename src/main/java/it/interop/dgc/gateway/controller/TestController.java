@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import it.interop.dgc.gateway.akamai.AkamaiFastPurge;
 import it.interop.dgc.gateway.entity.SignerUploadInformationEntity;
 import it.interop.dgc.gateway.repository.SignerUploadInformationRepository;
 import it.interop.dgc.gateway.signing.SignatureService;
@@ -41,6 +42,8 @@ public class TestController {
 	@Autowired(required=true)
 	private DgcWorker efgsWorker;
 
+	@Autowired(required=true)
+	private AkamaiFastPurge akamaiFastPurge;
 	
 	@GetMapping("/testUpload")
 	public ResponseEntity<String> testUpload() {
@@ -97,5 +100,19 @@ public class TestController {
 		return new ResponseEntity<String>(content.toString(), HttpStatus.OK);		
 	}
 	
+	@GetMapping("/testAkamai")
+	public ResponseEntity<String> testAkamai() {
+		StringBuffer content = new StringBuffer();
+		try {
+			if (akamaiFastPurge.getUrl()!=null && !"".equals(akamaiFastPurge.getUrl())) {
+				String akamaiReport = akamaiFastPurge.invalidateUrls();
+				content.append(akamaiReport);
+			}
+		} catch(Exception e) {
+			content.append("ERROR INVALIDATING AKAMAI CACHE");
+			log.error("ERROR Invalidating akamai cache. ->  ", e);
+		}
+		return new ResponseEntity<String>(content.toString(), HttpStatus.OK);		
+	}
 	
 }
