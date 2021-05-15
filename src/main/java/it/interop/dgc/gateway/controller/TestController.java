@@ -52,9 +52,9 @@ public class TestController {
 			
 			efgsWorker.uploadWorker();
 			log.info("OK");
+			content.append("testUpload: OK");
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			content.append("Errore: ").append(e.getMessage()).append("<br>");
 		}
@@ -69,9 +69,9 @@ public class TestController {
 			
 			efgsWorker.downloadWorker();
 			log.info("OK");
+			content.append("testDownload: OK");
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			content.append("Errore: ").append(e.getMessage()).append("<br>");
 		}
@@ -88,6 +88,9 @@ public class TestController {
 				log.info("raw data : {}", toSendSignerInformationList.get(0).getRawData());
 				String signedCertificate = signatureService.getSignatureForBytes(toSendSignerInformationList.get(0).getRawData());
 				log.info("signed raw data : {}", signedCertificate);
+				content.append("testSign: OK").append("<br>");
+				content.append("raw data : ").append(toSendSignerInformationList.get(0).getRawData()).append("<br>");
+				content.append("signed raw data : ").append(signedCertificate).append("<br>");
 			}
 
 			log.info("OK");
@@ -106,7 +109,7 @@ public class TestController {
 		try {
 			if (akamaiFastPurge.getUrl()!=null && !"".equals(akamaiFastPurge.getUrl())) {
 				String akamaiReport = akamaiFastPurge.invalidateUrls();
-				content.append(akamaiReport);
+				content.append("testAkamai: ").append(akamaiReport);
 			}
 		} catch(Exception e) {
 			content.append("ERROR INVALIDATING AKAMAI CACHE");
