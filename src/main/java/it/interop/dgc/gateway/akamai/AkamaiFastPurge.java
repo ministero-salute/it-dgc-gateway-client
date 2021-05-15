@@ -172,10 +172,11 @@ public class AkamaiFastPurge {
 		return status.toString();
     }
 
-    public static String getStringRequestBody(String cpcodes) {
-    	;
-        Map<String, int[]> akamaiRequestMap = new HashMap<String, int[]>();
-        akamaiRequestMap.put("objects", Stream.of(cpcodes.split(",")).mapToInt(Integer::parseInt).toArray());
+    public static String getStringRequestBody(String urls) {
+//        Map<String, int[]> akamaiRequestMap = new HashMap<String, int[]>();
+//        akamaiRequestMap.put("objects", Stream.of(urls.split(",")).mapToInt(Integer::parseInt).toArray());
+        Map<String, String[]> akamaiRequestMap = new HashMap<String, String[]>();
+        akamaiRequestMap.put("objects", urls.split(","));
         return new Gson().toJson(akamaiRequestMap);
     }
 
