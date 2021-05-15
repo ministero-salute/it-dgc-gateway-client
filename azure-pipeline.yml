@@ -1,0 +1,82 @@
+name: ministero-salute.it-dgc-gateway-client
+
+trigger:
+  branches:
+    include:
+    - master
+    - develop
+    - feature/*
+    - releases/*
+pr:
+  branches:
+    include:
+    - master
+    - develop
+    - releases/*
+
+pool:
+  pool: Azure Pipelines
+
+resources:
+  containers:
+  - container: mongo
+    image: mongo
+    ports:
+    - 27017:27017
+
+services:
+  mongo: mongo
+ 
+workspace:
+  clean: all
+
+steps:
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    codeCoverageToolOption: 'JaCoCo'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.11'
+    mavenVersionOption: 'Default'
+    mavenAuthenticateFeed: false
+    effectivePomSkip: false
+    sonarQubeRunAnalysis: false
+
+# - task: BuildQualityChecks@8
+#   inputs:
+#     checkCoverage: true
+#     coverageFailOption: 'fixed'
+#     coverageType: 'lines'
+#     treat0of0as100: true
+#     coverageThreshold: '80'
+    
+- task: SonarQubePrepare@4
+  inputs:
+    SonarQube: 'SonarQubeAzure6.7Sogei'
+    scannerMode: 'CLI'
+    configMode: 'manual'
+    cliProjectKey: '$(System.TeamProject)_it-dgc-gateway-client'
+    cliProjectName: '$(System.TeamProject)_it-dgc-gateway-client'
+    cliProjectVersion: '$(Build.SourceBranchName)_$(Build.SourceVersion)'
+    cliSources: '.'
+    extraProperties: |
+      # Additional properties that will be passed to the scanner, 
+      # Put one key=value per line, example:
+      # sonar.exclusions=**/*.bin
+      sonar.java.binaries=.
+      sonar.exclusions=**/CCReport*/**
+
+
+- task: SonarQubeAnalyze@4
+
+# - task: SonarQubePublish@4
+#   inputs:
+#     pollingTimeoutSec: '300'
+
+
+- task: Docker@2
+  inputs:
+    command: 'build'
+    Dockerfile: '**/Dockerfile'
