@@ -25,6 +25,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import it.interop.dgc.gateway.entity.SignerInformationEntity;
+import it.interop.dgc.gateway.enums.CertificateType;
 
 @Repository
 public class SignerInformationRepository {
@@ -63,7 +64,9 @@ public class SignerInformationRepository {
 	}
 	
 	public Long maxResumeToken() {
-		Query query = new Query().with(Sort.by("id").descending()).limit(1);
+		Query query = new Query()
+				.addCriteria(Criteria.where("certificate_type").is(CertificateType.DSC.name()))
+				.with(Sort.by("id").descending()).limit(1);
 		SignerInformationEntity ret = mongoTemplate.findOne(query, SignerInformationEntity.class);
         return (ret == null || ret.getResumeToken() == null) ? 0 : ret.getResumeToken();
     }
