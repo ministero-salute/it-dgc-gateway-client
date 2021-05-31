@@ -45,6 +45,16 @@ The root contains the following folders:
 All the repository logic of Immuni’s EFGS Client can be found at the following path ```src/main/java```.
 
 The file for the different configurations ```application.properties``` can be found in ```src/main/resources```.
+
+## Testing
+To preserve functionality after every change, please ensure that all existing test cases pass. You may be required to implement additional test cases, in the event that the existing ones do not ensure maximum coverage after your changes.
+
+```bash
+mvn clean verify
+```
+
+When a new pull request is opened, the CI assesses whether all test cases pass and whether the maximum coverage is reached. Please solve any failures before we can proceed with the review.
+
 # Gitflow
 This repository adopts the [Gitflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) branch management system.
 
