@@ -57,8 +57,8 @@ First ensure you have a MongoDB instance running locally on `` mongodb://127.0.0
 To build the Docker image you first need to build the project from the root:
 
 ```shell script
-git clone git@github.com:ministero-salute/it-eucert-gateway-client.git
-cd it-eucert-gateway-client
+git clone git@github.com:ministero-salute/it-dgc-gateway-client.git
+cd it-dgc-gateway-client
 mvn clean package
 ```
 
