@@ -46,6 +46,7 @@ steps:
 
 - task: BuildQualityChecks@8
   inputs:
+    treat0of0as100: true
     checkCoverage: true
     coverageFailOption: 'fixed'
     coverageType: 'lines'
