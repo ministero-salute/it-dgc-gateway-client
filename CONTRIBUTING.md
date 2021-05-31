@@ -4,6 +4,7 @@
 - [Architecture](#architecture)
   - [Environment](#environment)
   - [Repository structure](#repository-structure)
+  - [Testing](#testing)
 - [Gitflow](#gitflow)
   - [Feature and fixes](#feature-and-fixes)
   - [Releases](#releases)
