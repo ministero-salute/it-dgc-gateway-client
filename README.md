@@ -61,11 +61,6 @@ git clone git@github.com:ministero-salute/it-eucert-gateway-client.git
 cd it-eucert-gateway-client
 mvn clean package
 ```
-Then, copy the file ``application.properties`` contained in the path ``./src/main/resources`` into the ``./config`` folder:
-```shell script
-mkdir config
-cp ./src/main/resources/application.properties ./config
-```
 
 By default the docker image uses a local mongodb instance running on  `` mongodb://127.0.0.1:27017``, you can always change the connection url by editing the envar in the enviroment section of the ``docker-compose.yml``:
 
