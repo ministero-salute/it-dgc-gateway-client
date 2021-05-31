@@ -47,18 +47,7 @@ steps:
 - task: SonarQubePrepare@4
   inputs:
     SonarQube: 'SonarQube Azure 8.9'
-    scannerMode: 'CLI'
-    configMode: 'manual'
-    cliProjectKey: '$(System.TeamProject)_it-dgc-gateway-client'
-    cliProjectName: '$(System.TeamProject)_it-dgc-gateway-client'
-    cliProjectVersion: '$(Build.SourceBranchName)_$(Build.SourceVersion)'
-    cliSources: '.'
-    extraProperties: |
-      # Additional properties that will be passed to the scanner, 
-      # Put one key=value per line, example:
-      # sonar.exclusions=**/*.bin
-      sonar.java.binaries=.
-      sonar.exclusions=**/CCReport*/**
+    scannerMode: 'Other'
 
 - task: SonarQubeAnalyze@4
 
