@@ -40,6 +40,8 @@ public class DgcLogInfo {
 	@Field("already_exists")
 	private boolean alreadyExists;
 
+	public DgcLogInfo() {}
+	
 	public DgcLogInfo(TrustListItemDto trustListItemDto) {
 		this.kid = trustListItemDto.getKid();
 		this.country = trustListItemDto.getCountry();

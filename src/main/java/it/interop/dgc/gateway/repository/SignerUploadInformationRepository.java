@@ -38,9 +38,8 @@ public class SignerUploadInformationRepository {
 	public List<SignerUploadInformationEntity> getSignerInformationToSend() {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("batch_tag").is(null));
-//		query.fields().include("_id");
-		List<SignerUploadInformationEntity> kets = mongoTemplate.find(query, SignerUploadInformationEntity.class);
-		return kets;
+		List<SignerUploadInformationEntity> certs = mongoTemplate.find(query, SignerUploadInformationEntity.class);
+		return certs;
 	}
 
 	public List<SignerUploadInformationEntity> getSignerInformationToRevoke() {
@@ -48,8 +47,7 @@ public class SignerUploadInformationRepository {
 		query.addCriteria(Criteria.where("revoked").is(true))
 		.addCriteria(Criteria.where("batch_tag").exists(true))
 		.addCriteria(Criteria.where("batch_tag_revoke").is(null));
-//		query.fields().include("_id");
-		List<SignerUploadInformationEntity> kets = mongoTemplate.find(query, SignerUploadInformationEntity.class);
-		return kets;
+		List<SignerUploadInformationEntity> certs = mongoTemplate.find(query, SignerUploadInformationEntity.class);
+		return certs;
 	}
 }

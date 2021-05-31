@@ -32,21 +32,4 @@ public class DgcLogRepository {
 		return mongoTemplate.save(efgsWorkerInfo);
 	}
 	
-	public DgcLogEntity getByCountryBatchtag(String country, String batchTag, Integer index) {
-		Query query = new Query();
-		query.addCriteria(Criteria.where("country").is(country))
-		.addCriteria(Criteria.where("batchTag").is(batchTag))
-		.addCriteria(Criteria.where("index").is(index));
-		return mongoTemplate.findOne(query, DgcLogEntity.class);
-	}
-	
-//	public void setStaristicByCountryBatchtag(String country, String batchTag, Integer index, Map<String, Long> ammountPerCountry, String processStatus) {
-//		DgcLogEntity efgsLog = getByCountryBatchtag(country, batchTag, index);
-//		if (efgsLog!=null) {
-//			efgsLog.setAmmountPerCountry(ammountPerCountry);
-//			efgsLog.setExecutionReport(processStatus);
-//			save(efgsLog);
-//		}
-//	}
-	
 }
