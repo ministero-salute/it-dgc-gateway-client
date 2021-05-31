@@ -1,5 +1,9 @@
 version: '3'
 
+networks:
+  backend_net:
+    driver: bridge
+
 services:
   backend:
     build: .
@@ -13,7 +17,7 @@ services:
       - PROXY_PORT=8080
       - PROXY_USER=user
       - PROXY_PWD=password
-      - MONGO_DB_URI=mongodb://user:password@mongodd:27017/DGCDB
+      - MONGO_DB_URI=mongodb://host.docker.internal:27017/DGCDB
       - SIGN_EXTERNAL_URL=https://host/v1/sign
       - SSLDP_JKS_PATH=/security/sslclient/ssldp.jks
       - SSLDP_JKS_PASSWORD=password
@@ -26,13 +30,8 @@ services:
       - TRUST_JKS_PASSWORD=password
       - TRUST_DGC_ANCHOR_ALIAS=anchor_alias
     volumes:
-      - c:\security\sslclient:/security/sslclient
-      - c:\security\truststore:/security/truststore
-      - c:\it-dgc-gateway-client\config:/it-dgc-gateway-client/config
+      - ./security/sslclient:/security/sslclient
+      - ./security/truststore:/security/truststore
+      - ./it-dgc-gateway-client/config:/it-dgc-gateway-client/config
     networks:
-      backend:
-      persistence:
-
-networks:
-  persistence:
-  backend:
+      - backend_net
