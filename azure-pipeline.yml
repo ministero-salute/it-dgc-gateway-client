@@ -37,12 +37,6 @@ steps:
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     codeCoverageToolOption: 'JaCoCo'
-    codeCoverageClassFilter: '-:it.interop.dgc.gateway.entity., 
-                              -:it.interop.dgc.gateway.signing., 
-                              -:it.interop.dgc.gateway.client.,
-                              -:it.interop.dgc.gateway.dto.,
-                              -:it.interop.dgc.gateway.akamai., 
-                              -:it.interop.dgc.gateway.controller.'
     codeCoverageFailIfEmpty: true
     codeCoverageRestoreOriginalPomXml: true
     javaHomeOption: 'JDKVersion'
