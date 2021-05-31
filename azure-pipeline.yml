@@ -44,14 +44,6 @@ steps:
     effectivePomSkip: false
     sonarQubeRunAnalysis: false
 
-- task: BuildQualityChecks@8
-  inputs:
-    treat0of0as100: true
-    checkCoverage: true
-    coverageFailOption: 'fixed'
-    coverageType: 'lines'
-    coverageThreshold: '80'
-    
 - task: SonarQubePrepare@4
   inputs:
     SonarQube: 'SonarQube Azure 8.9'
