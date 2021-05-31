@@ -62,6 +62,18 @@ cd it-eucert-gateway-client
 mvn clean package
 ```
 
+Then, copy the file ``application.properties`` contained in the path ``./src/main/resources`` into the ``./it-dgc-gateway-client/config`` folder:
+```shell script
+mkdir -p it-dgc-gateway-client/config
+cp ./src/main/resources/application.properties ./it-dgc-gateway-client/config
+```
+
+You need also a ``security`` folder thant must contain ``sslclient`` and ``truststore`` directory:
+```shell script
+mkdir -p security/sslclient
+mkdir -p security/truststore
+```
+
 By default the docker image uses a local mongodb instance running on  `` mongodb://127.0.0.1:27017``, you can always change the connection url by editing the envar in the enviroment section of the ``docker-compose.yml``:
 
 ```
