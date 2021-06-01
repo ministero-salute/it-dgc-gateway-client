@@ -43,7 +43,7 @@ The root contains the following folders:
 - **Dockerfile**. This contains all the commands to assemble the base image.
 - **docker-compose.yml**. This contains the configuration to seamlessly run the service, as shown in [Environment](#environment) (DB references, External services URI).
 
-All the repository logic of Immuni’s EFGS Client can be found at the following path ```src/main/java```.
+All the repository logic of EU COVID-19 Certificate Gateway Client can be found at the following path ```src/main/java```.
 
 The file for the different configurations ```application.properties``` can be found in ```src/main/resources```.
 
@@ -92,8 +92,6 @@ Please follow the [Conventional Commits](https://www.conventionalcommits.org/en/
 
 # How to contribute
 When you encounter a bug or an issue with the system represented in this repository, you may choose to let the developers know the nature of the issue.
-
-The Immuni project is composed of different repositories—one for each component or service. If you wish to raise something strictly relevant to this repository (i.e., an Analytics Service bug), please read on. However, to raise other issues or to highlight other bugs, please open an issue in the [Documentation repository](https://github.com/immuni-app/immuni-documentation). This lets everyone involved see it, consider it, and participate in the discussion, without slowing down the overall process.
 
 ## Issues
 Before filing a new issue, please browse the relevant section and use the search functionality to check if it has already been filed by someone else.
