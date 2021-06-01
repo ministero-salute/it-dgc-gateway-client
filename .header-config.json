@@ -2,8 +2,8 @@
     "srcFolders": ["./"],
     "rules": [
         {
-            "match": [".*\\.swift"],
-            "skipIfContains": "license-start|Created\\sby",
+            "match": [".*\\.java"],
+            "skipIfContains": "Copyright",
             "comments": {
                 "start": "/*",
                 "line": " *  ",
