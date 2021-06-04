@@ -62,10 +62,9 @@ steps:
 
 - task: SonarQubeAnalyze@4
 
-# - task: SonarQubePublish@4
-#   inputs:
-#     pollingTimeoutSec: '300'
-
+- task: SonarQubePublish@4
+  inputs:
+    pollingTimeoutSec: '300'
 
 - task: Docker@2
   inputs:
