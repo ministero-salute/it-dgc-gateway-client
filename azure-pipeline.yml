@@ -70,10 +70,3 @@ steps:
   inputs:
     command: 'build'
     Dockerfile: '**/Dockerfile'
-
-# - task: Docker@2
-#   inputs:
-#     containerRegistry: 'ContainerHubSogeiAzure'
-#     repository: '$(System.TeamProject)/it-dgc-gateway-client'
-#     command: 'buildAndPush'
-#     Dockerfile: '**/Dockerfile'
