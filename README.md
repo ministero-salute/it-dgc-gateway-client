@@ -138,10 +138,6 @@ Lombok is an open-source project released under the MIT licence.
 - **[AkamaiOPEN-edgegrid-java](https://developer.akamai.com/libraries).** A Java library for EdgeGrid Client Authentication. Provides a client independent implement as well as concrete implementations for REST-assured and Google HTTP Client Library for Java integration. AkamaiOPEN-edgegrid-java is released as an open-source project under an adaptation of the Apache 2.0 licence.
 - **[JaCoCo](https://www.eclemma.org/jacoco/trunk/doc/maven.html).** A Maven plug-in that provides the JaCoCo runtime agent to your tests and allows basic report creation. JaCoCo is released as an open-source project under the EPL 2.0 licence.
 
-
-
-library implements Akamai {OPEN} EdgeGrid Authentication for Java. It is presented as a core module which can be used independently of any particular HTTP client library and three implementations for specific HTTP client libraries.
-
 # Contributing
 Contributions are most welcome. Before proceeding, please read the [Code of Conduct](./CODE_OF_CONDUCT.md) for guidance on how to approach the community and create a positive environment. Additionally, please read our [CONTRIBUTING](./CONTRIBUTING.md) file, which contains guidance on ensuring a smooth contribution process.
 
