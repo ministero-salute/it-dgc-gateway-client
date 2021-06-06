@@ -137,12 +137,20 @@ Lombok is an open-source project released under the MIT licence.
 - **[BouncyCastle](https://www.bouncycastle.org/).** a Java library that complements the default Java Cryptographic Extension (JCE). In this introductory article, we're going to show how to use BouncyCastle to perform cryptographic operations, such as encryption and signature. BouncyCastle is released as an open-source project under an adaptation of the MIT X11 licence.
 - **[AkamaiOPEN-edgegrid-java](https://developer.akamai.com/libraries).** A Java library for EdgeGrid Client Authentication. Provides a client independent implement as well as concrete implementations for REST-assured and Google HTTP Client Library for Java integration. AkamaiOPEN-edgegrid-java is released as an open-source project under an adaptation of the Apache 2.0 licence.
 - **[JaCoCo](https://www.eclemma.org/jacoco/trunk/doc/maven.html).** A Maven plug-in that provides the JaCoCo runtime agent to your tests and allows basic report creation. JaCoCo is released as an open-source project under the EPL 2.0 licence.
+- **[junit4](https://junit.org/junit4/).** A simple framework to write repeatable tests. It is an instance of the xUnit architecture for unit testing frameworks. Junit4 is released as an open-source project under Eclipse Public License 1.0.
 
 # Contributing
 Contributions are most welcome. Before proceeding, please read the [Code of Conduct](./CODE_OF_CONDUCT.md) for guidance on how to approach the community and create a positive environment. Additionally, please read our [CONTRIBUTING](./CONTRIBUTING.md) file, which contains guidance on ensuring a smooth contribution process.
 
 ## Contributors
 Here is a list of repository contributors. Thank you to everyone involved for improving this project, day by day.
+
+<a href="https://github.com/ministero-salute/it-dgc-gateway-client/graphs/contributors">
+  <img
+  src="https://contributors-img.web.app/image?repo=ministero-salute/it-dgc-gateway-client"
+  />
+</a>
+
 
 # Licence
 
