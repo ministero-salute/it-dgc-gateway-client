@@ -49,7 +49,7 @@ import it.interop.dgc.gateway.signing.SignatureService;
 import it.interop.dgc.gateway.util.DscUtil;
 import it.interop.dgc.gateway.worker.testdata.DgcWorkerTestHelper;
 
-@SpringBootTest
+@SpringBootTest(properties = {"dgc.worker.upload.schedul=0 0 0 29 2 ?","dgc.worker.download.schedul=0 0 0 29 2 ?"})
 @AutoConfigureDataMongo
 //prevent @PostConstruct execution
 @MockBean(classes = { SignatureService.class, CertificateSignatureVerifier.class, RestApiClientBase.class, RestApiClient.class })
