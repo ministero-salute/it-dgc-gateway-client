@@ -18,15 +18,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
 
-import it.interop.dgc.gateway.entity.DgcLogEntity;
+import it.interop.dgc.gateway.entity.DgcRuleLogEntity;
 
 @Repository
-public class DgcLogRepository {
+public class DgcRuleLogRepository {
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	public DgcLogEntity save(DgcLogEntity efgsWorkerInfo) {
+	public DgcRuleLogEntity save(DgcRuleLogEntity efgsWorkerInfo) {
 		return mongoTemplate.save(efgsWorkerInfo);
 	}
 	

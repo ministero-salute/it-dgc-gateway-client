@@ -6,6 +6,7 @@ target/
 
 ### JAVA ###
 application-dev.properties
+application-val.properties
 #TestController.java
 
 ### STS ###

@@ -21,7 +21,6 @@ import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -68,6 +67,9 @@ public class AkamaiFastPurge {
 	
 	@Value("${akamai.cpcodes_to_purge}")
 	private String cpcodes;
+
+	@Value("${akamai.cpcodes_rules_to_purge}")
+	private String rulescpcodes;
 
 	@Value("${akamai.user_agent}")
 	private String userAgent;
@@ -169,11 +171,40 @@ public class AkamaiFastPurge {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(HttpHeaders.USER_AGENT, userAgent);
 		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
-//		headers.set(HttpHeaders.ACCEPT, "application/json");
 		
 		
 		
 		HttpEntity<String> entity = new HttpEntity<String>(getStringRequestBody(cpcodes), headers);
+
+		ResponseEntity<String> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, String.class);
+		
+		if (respEntity != null) {
+			status = respEntity.getStatusCode();
+			log.info("RESPONSE AkamaiFastPurge -> {}", respEntity.getBody());
+		}
+
+		log.info("END REST AkamaiFastPurge status-> {}", status);
+
+		return status.toString();
+    }
+
+    public String invalidateRulesUrls() {
+    	HttpStatus status = null;
+    	
+		URI uri = UriComponentsBuilder
+				.fromUriString(getUrl())
+				.build().toUri();
+
+		log.info("START REST AkamaiFastPurge calling-> {}", uri.toString());
+
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(HttpHeaders.USER_AGENT, userAgent);
+		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+		
+		
+		
+		HttpEntity<String> entity = new HttpEntity<String>(getStringRequestBody(rulescpcodes), headers);
 
 		ResponseEntity<String> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, String.class);
 		

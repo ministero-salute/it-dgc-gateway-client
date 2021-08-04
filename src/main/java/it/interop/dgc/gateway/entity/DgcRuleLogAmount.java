@@ -19,56 +19,40 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import lombok.Data;
 
 @Data
-public class DgcLogAmount {
+public class DgcRuleLogAmount {
 
-    @Field(name="num_csca")
-	private Integer numCsca = 0;
+    @Field(name="num")
+	private Integer num = 0;
     
-
-	@Field(name="num_dsc")
-    private Integer numDsc = 0;
+    @Field(name="num_new")
+    private Integer numNew = 0;
     
-    @Field(name="num_new_csca")
-    private Integer numNewCsca = 0;
+    @Field(name="num_old")
+    private Integer numOld = 0;
     
-    @Field(name="num_new_dsc")
-    private Integer numNewDsc = 0;
-    
-    @Field(name="num_invalid_csca")
-    private Integer numInvalidCsca = 0;
-    
-    @Field(name="num_invalid_dsc")
-    private Integer numInvalidDsc = 0;
+    @Field(name="num_invalid")
+    private Integer numInvalid = 0;
     
     @Field(name="num_revoked")
     private Integer numRevoked = 0;
 
-    
-    public Integer incNumCsca() {
-		return ++numCsca;
+    public Integer incNum() {
+		return ++num;
 	}
 
-	public Integer incNumDsc() {
-		return ++numDsc;
+    public Integer incNumNew() {
+		return ++numNew;
 	}
 
-	public Integer incNumNewCsca() {
-		return ++numNewCsca;
+    public Integer incNumOld() {
+		return ++numOld;
 	}
 
-	public Integer incNumNewDsc() {
-		return ++numNewDsc;
+    public Integer incNumInvalid() {
+		return ++numInvalid;
 	}
 
-	public Integer incNumInvalidCsca() {
-		return ++numInvalidCsca;
-	}
-
-	public Integer incNumInvalidDsc() {
-		return ++numInvalidDsc;
-	}
-
-	public Integer incNumRevoked() {
+    public Integer incNumRevoked() {
 		return ++numRevoked;
 	}
     

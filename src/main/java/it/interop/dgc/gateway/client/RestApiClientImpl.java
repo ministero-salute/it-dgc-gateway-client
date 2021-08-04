@@ -36,6 +36,7 @@ import it.interop.dgc.gateway.client.base.RestApiClientBase;
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
+import it.interop.dgc.gateway.dto.ValidationRuleDto;
 import it.interop.dgc.gateway.enums.CertificateType;
 import lombok.extern.slf4j.Slf4j;
 
@@ -165,6 +166,206 @@ public class RestApiClientImpl extends RestApiClientBase implements RestApiClien
 			restApiResponse = new RestApiResponse<List<TrustListItemDto>>(respEntity.getStatusCode(), headersToMap(respEntity.getHeaders()), listTrust);
 		}
 		
+
+		log.info("END REST Client calling-> {}", uri.toString());
+		return restApiResponse;
+	}
+
+	@Override
+	public RestApiResponse<String> downloadCountryList() throws RestApiException {
+		URI uri = UriComponentsBuilder.fromHttpUrl(new StringBuffer(getBaseUrl()).append("/countrylist").toString())
+				.build().encode().toUri();
+
+		log.info("START REST Client calling-> {}", uri.toString());
+
+		HttpHeaders headers = makeBaseHeaders();
+		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+		
+		HttpEntity<Void> entity = new HttpEntity<Void>(headers);
+
+		ResponseEntity<byte[]> respEntity = getRestTemplate().exchange(uri, HttpMethod.GET, entity, byte[].class);
+
+		RestApiResponse<String> restApiResponse = null;
+
+		String listCountry = null;
+		if (respEntity != null) {
+
+			log.info("REST Client response-> {}", respEntity.getStatusCode());
+
+			if (respEntity.getStatusCode() == HttpStatus.OK) {
+				listCountry = new String(respEntity.getBody());
+			}
+			
+			restApiResponse = new RestApiResponse<String>(respEntity.getStatusCode(), headersToMap(respEntity.getHeaders()), listCountry);
+		}
+		
+		log.info("END REST Client calling-> {}", uri.toString());
+		return restApiResponse;
+	}
+
+	@Override
+	public RestApiResponse<List<String>> getValuesetIds() throws RestApiException {
+		URI uri = UriComponentsBuilder.fromHttpUrl(new StringBuffer(getBaseUrl()).append("/valuesets").toString())
+				.build().encode().toUri();
+
+		log.info("START REST Client calling-> {}", uri.toString());
+
+		HttpHeaders headers = makeBaseHeaders();
+		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+		
+		HttpEntity<Void> entity = new HttpEntity<Void>(headers);
+
+		ResponseEntity<byte[]> respEntity = getRestTemplate().exchange(uri, HttpMethod.GET, entity, byte[].class);
+
+		RestApiResponse<List<String>> restApiResponse = null;
+
+		List<String> listValues = null;
+		if (respEntity != null) {
+
+			log.info("REST Client response-> {}", respEntity.getStatusCode());
+
+			if (respEntity.getStatusCode() == HttpStatus.OK) {
+				Gson gson = new Gson();
+				Type trustListType = new TypeToken<ArrayList<String>>(){}.getType();
+				listValues = gson.fromJson(new String(respEntity.getBody()), trustListType);
+			}
+			
+			restApiResponse = new RestApiResponse<List<String>>(respEntity.getStatusCode(), headersToMap(respEntity.getHeaders()), listValues);
+		}
+		
+		log.info("END REST Client calling-> {}", uri.toString());
+		return restApiResponse;
+	}
+
+	@Override
+	public RestApiResponse<String> getValueset(String id) throws RestApiException {
+		Map<String, String> urlParams = new HashMap<>();
+		urlParams.put("id", id);
+
+		URI uri = UriComponentsBuilder
+				.fromUriString(new StringBuffer(getBaseUrl()).append("/valuesets/{id}").toString())
+				.buildAndExpand(urlParams).encode().toUri();
+
+		log.info("START REST Client calling-> {}", uri.toString());
+
+		HttpHeaders headers = makeBaseHeaders();
+		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+		
+		HttpEntity<Void> entity = new HttpEntity<Void>(headers);
+
+		ResponseEntity<byte[]> respEntity = getRestTemplate().exchange(uri, HttpMethod.GET, entity, byte[].class);
+
+		RestApiResponse<String> restApiResponse = null;
+
+		String values = null;
+		if (respEntity != null) {
+
+			log.info("REST Client response-> {}", respEntity.getStatusCode());
+
+			if (respEntity.getStatusCode() == HttpStatus.OK) {
+				values = new String(respEntity.getBody());
+			}
+			
+			restApiResponse = new RestApiResponse<String>(respEntity.getStatusCode(), headersToMap(respEntity.getHeaders()), values);
+		}
+		
+		log.info("END REST Client calling-> {}", uri.toString());
+		return restApiResponse;
+	}
+
+	@Override
+	public RestApiResponse<Map<String, List<ValidationRuleDto>>> downloadValidationRules(String country) throws RestApiException {
+		Map<String, String> urlParams = new HashMap<>();
+		urlParams.put("country", country);
+
+		URI uri = UriComponentsBuilder
+				.fromUriString(new StringBuffer(getBaseUrl()).append("/rules/{country}").toString())
+				.buildAndExpand(urlParams).encode().toUri();
+
+		log.info("START REST Client calling-> {}", uri.toString());
+
+		HttpHeaders headers = makeBaseHeaders();
+		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+		
+		HttpEntity<Void> entity = new HttpEntity<Void>(headers);
+
+		ResponseEntity<byte[]> respEntity = getRestTemplate().exchange(uri, HttpMethod.GET, entity, byte[].class);
+
+		RestApiResponse<Map<String, List<ValidationRuleDto>>> restApiResponse = null;
+
+		Map<String, List<ValidationRuleDto>> mapRules = null;
+		if (respEntity != null) {
+
+			log.info("REST Client response-> {}", respEntity.getStatusCode());
+
+			if (respEntity.getStatusCode() == HttpStatus.OK) {
+				Gson gson = new Gson();
+				Type trustListType = new TypeToken<HashMap<String, List<ValidationRuleDto>>>(){}.getType();
+				mapRules = gson.fromJson(new String(respEntity.getBody()), trustListType);
+			}
+			
+			restApiResponse = new RestApiResponse<Map<String, List<ValidationRuleDto>>>(respEntity.getStatusCode(), headersToMap(respEntity.getHeaders()), mapRules);
+		}
+		
+		log.info("END REST Client calling-> {}", uri.toString());
+		return restApiResponse;
+	}
+
+	@Override
+	public RestApiResponse<String> uploadValidationRule(String cms, String countryCode) throws RestApiException {
+		URI uri = UriComponentsBuilder.fromHttpUrl(new StringBuffer(getBaseUrl()).append("/rules").toString())
+				.queryParam(REQUEST_PROP_COUNTRY, countryCode)
+				.build().encode().toUri();
+		
+		log.info("START REST Client calling-> {}", uri.toString());
+
+		HttpHeaders headers = makeBaseHeaders();
+		headers.set(HttpHeaders.CONTENT_TYPE, "application/cms");
+		headers.set(HttpHeaders.CONTENT_ENCODING, "base64");
+		
+		HttpEntity<String> entity = new HttpEntity<String>(cms, headers);
+
+		ResponseEntity<Void> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, Void.class);
+		
+		RestApiResponse<String> restApiResponse = null;
+
+		if (respEntity != null) {
+			String esito = respEntity.getStatusCode().toString();
+			
+			log.info("REST Client response-> {} : message: {}", respEntity.getStatusCode(), esito);
+
+			restApiResponse = new RestApiResponse<String>(respEntity.getStatusCode(), headersToMap(respEntity.getHeaders()), esito);
+		}
+
+		log.info("END REST Client calling-> {}", uri.toString());
+		return restApiResponse;
+	}
+
+	@Override
+	public RestApiResponse<String> deleteValidationRules(String cms, String countryCode) throws RestApiException {
+		URI uri = UriComponentsBuilder.fromHttpUrl(new StringBuffer(getBaseUrl()).append("/rules").toString())
+				.queryParam(REQUEST_PROP_COUNTRY, countryCode)
+				.build().encode().toUri();
+
+		log.info("START REST Client calling-> {}", uri.toString());
+
+		HttpHeaders headers = makeBaseHeaders();
+		headers.set(HttpHeaders.CONTENT_TYPE, "application/cms");
+		headers.set(HttpHeaders.CONTENT_ENCODING, "base64");
+		
+		HttpEntity<String> entity = new HttpEntity<String>(cms, headers);
+
+		ResponseEntity<Void> respEntity = getRestTemplate().exchange(uri, HttpMethod.DELETE, entity, Void.class);
+		
+		RestApiResponse<String> restApiResponse = null;
+
+		if (respEntity != null) {
+			String esito = respEntity.getStatusCode().toString();
+			
+			log.info("REST Client response-> {} : message: {}", respEntity.getStatusCode(), esito);
+
+			restApiResponse = new RestApiResponse<String>(respEntity.getStatusCode(), headersToMap(respEntity.getHeaders()), esito);
+		}
 
 		log.info("END REST Client calling-> {}", uri.toString());
 		return restApiResponse;
