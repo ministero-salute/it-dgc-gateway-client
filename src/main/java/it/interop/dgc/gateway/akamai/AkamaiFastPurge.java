@@ -63,9 +63,16 @@ public class AkamaiFastPurge {
 	@Value("${akamai.url}")
 	private String url;
 	
+	@Getter
+	@Value("${akamai.cpcode}")
+	private String cpcode;
+
 	@Value("${akamai.network}")
 	private String network;
 	
+	@Value("${akamai.urls_to_purge}")
+	private String urls;
+
 	@Value("${akamai.cpcodes_to_purge}")
 	private String cpcodes;
 
@@ -169,11 +176,10 @@ public class AkamaiFastPurge {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(HttpHeaders.USER_AGENT, userAgent);
 		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
-//		headers.set(HttpHeaders.ACCEPT, "application/json");
 		
 		
 		
-		HttpEntity<String> entity = new HttpEntity<String>(getStringRequestBody(cpcodes), headers);
+		HttpEntity<String> entity = new HttpEntity<String>(getUrlsStringRequestBody(urls), headers);
 
 		ResponseEntity<String> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, String.class);
 		
@@ -187,12 +193,46 @@ public class AkamaiFastPurge {
 		return status.toString();
     }
 
-    public static String getStringRequestBody(String urls) {
-//        Map<String, int[]> akamaiRequestMap = new HashMap<String, int[]>();
-//        akamaiRequestMap.put("objects", Stream.of(urls.split(",")).mapToInt(Integer::parseInt).toArray());
+    public String invalidateRulesUrls() {
+    	HttpStatus status = null;
+    	
+		URI uri = UriComponentsBuilder
+				.fromUriString(getCpcode())
+				.build().toUri();
+
+		log.info("START REST AkamaiFastPurge calling-> {}", uri.toString());
+
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(HttpHeaders.USER_AGENT, userAgent);
+		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+		
+		
+		
+		HttpEntity<String> entity = new HttpEntity<String>(getCpcodesStringRequestBody(cpcodes), headers);
+
+		ResponseEntity<String> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, String.class);
+		
+		if (respEntity != null) {
+			status = respEntity.getStatusCode();
+			log.info("RESPONSE AkamaiFastPurge -> {}", respEntity.getBody());
+		}
+
+		log.info("END REST AkamaiFastPurge status-> {}", status);
+
+		return status.toString();
+    }
+
+    public static String getUrlsStringRequestBody(String urls) {
         Map<String, String[]> akamaiRequestMap = new HashMap<String, String[]>();
         akamaiRequestMap.put("objects", urls.split(","));
         return new Gson().toJson(akamaiRequestMap);
     }
+
+    public static String getCpcodesStringRequestBody(String urls) {
+      Map<String, int[]> akamaiRequestMap = new HashMap<String, int[]>();
+      akamaiRequestMap.put("objects", Stream.of(urls.split(",")).mapToInt(Integer::parseInt).toArray());
+      return new Gson().toJson(akamaiRequestMap);
+  }
 
 }

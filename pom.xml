@@ -28,6 +28,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.javadoc.skip>true</maven.javadoc.skip>
 		<maven.test.skip>false</maven.test.skip>
+		<bcpkix.version>1.68</bcpkix.version>
 	</properties>
 
 
@@ -97,7 +98,12 @@
 		    <artifactId>edgegrid-signer-apache-http-client</artifactId>
 		    <version>4.0.1</version>
 		</dependency>
-
+		
+		<dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>${bcpkix.version}</version>
+        </dependency>
 	</dependencies>
 
 	<build>
@@ -116,6 +122,7 @@
                         <exclude>it/interop/dgc/gateway/signing/*</exclude>
                         <exclude>it/interop/dgc/gateway/client/**/*</exclude>
                         <exclude>it/interop/dgc/gateway/dto/*</exclude>
+                        <exclude>it/interop/dgc/gateway/model/*</exclude>
                         <exclude>it/interop/dgc/gateway/akamai/*</exclude>
                         <exclude>it/interop/dgc/gateway/controller/*</exclude>
                     </excludes>

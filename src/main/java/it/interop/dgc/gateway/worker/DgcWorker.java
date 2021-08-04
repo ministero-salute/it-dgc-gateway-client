@@ -14,41 +14,63 @@
  */
 package it.interop.dgc.gateway.worker;
 
-import java.io.IOException;
+import java.lang.reflect.Type;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.bouncycastle.cms.CMSException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import it.interop.dgc.gateway.akamai.AkamaiFastPurge;
 import it.interop.dgc.gateway.client.RestApiClient;
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
+import it.interop.dgc.gateway.dto.ValidationRuleDto;
+import it.interop.dgc.gateway.entity.BusinessRuleEntity;
+import it.interop.dgc.gateway.entity.BusinessRuleInvalidEntity;
+import it.interop.dgc.gateway.entity.BusinessRuleUploadEntity;
+import it.interop.dgc.gateway.entity.CountryListEntity;
 import it.interop.dgc.gateway.entity.DgcLogAmount;
 import it.interop.dgc.gateway.entity.DgcLogEntity;
 import it.interop.dgc.gateway.entity.DgcLogEntity.OperationType;
 import it.interop.dgc.gateway.entity.DgcLogInfo;
+import it.interop.dgc.gateway.entity.DgcRuleLogAmount;
+import it.interop.dgc.gateway.entity.DgcRuleLogEntity;
+import it.interop.dgc.gateway.entity.DgcRuleLogInfo;
 import it.interop.dgc.gateway.entity.SignerInformationEntity;
 import it.interop.dgc.gateway.entity.SignerInvalidInformationEntity;
 import it.interop.dgc.gateway.entity.SignerUploadInformationEntity;
+import it.interop.dgc.gateway.entity.ValueSetEntity;
 import it.interop.dgc.gateway.enums.CertificateType;
 import it.interop.dgc.gateway.mapper.DgcMapper;
+import it.interop.dgc.gateway.model.ValidationRule;
+import it.interop.dgc.gateway.repository.BusinessRuleInvalidRepository;
+import it.interop.dgc.gateway.repository.BusinessRuleRepository;
+import it.interop.dgc.gateway.repository.BusinessRuleUploadRepository;
+import it.interop.dgc.gateway.repository.CountryListRepository;
 import it.interop.dgc.gateway.repository.DgcLogRepository;
+import it.interop.dgc.gateway.repository.DgcRuleLogRepository;
 import it.interop.dgc.gateway.repository.SignerInformationRepository;
 import it.interop.dgc.gateway.repository.SignerInvalidInformationRepository;
 import it.interop.dgc.gateway.repository.SignerUploadInformationRepository;
-import it.interop.dgc.gateway.signing.CertificateSignatureException;
+import it.interop.dgc.gateway.repository.ValueSetRepository;
 import it.interop.dgc.gateway.signing.CertificateSignatureVerifier;
 import it.interop.dgc.gateway.signing.SignatureService;
+import it.interop.dgc.gateway.util.BusinessRulesUtils;
 import it.interop.dgc.gateway.util.DscUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +97,25 @@ public class DgcWorker {
 
 	@Autowired(required=true)
 	private DgcLogRepository dgcLogRepository;
+	
+	@Autowired(required=true)
+	private DgcRuleLogRepository dgcRuleLogRepository;
+	
+	@Autowired(required=true)
+	private BusinessRuleRepository businessRuleRepository;
 
+	@Autowired(required=true)
+	private BusinessRuleInvalidRepository businessRuleInvalidRepository;
+
+	@Autowired(required=true)
+	private BusinessRuleUploadRepository businessRuleUploadRepository;
+	
+	@Autowired(required=true)
+	private CountryListRepository countryListRepository;
+	
+	@Autowired(required=true)
+	private ValueSetRepository valueSetRepository;
+	
 	@Autowired(required=true)
 	private SignatureService signatureService;
 
@@ -85,10 +125,14 @@ public class DgcWorker {
 	@Autowired(required=true)
 	private AkamaiFastPurge akamaiFastPurge;
 	
+	@Autowired(required=true)
+	private BusinessRulesUtils businessRulesUtils;
+	
 	@Scheduled(cron = "${dgc.worker.upload.schedul}")
 	public void uploadWorker() {
 		log.info("@@@  UPLOAD -> START Processing upload. @@@");
 
+		log.info("@  UPLOAD CERT -> START Processing upload. @");
 		List<SignerUploadInformationEntity> toSendSignerInformationList = signerUploadInformationRepository.getSignerInformationToSend();
 		if (toSendSignerInformationList != null) {
 			for (SignerUploadInformationEntity signerInformation:toSendSignerInformationList) {
@@ -96,7 +140,9 @@ public class DgcWorker {
 			}
 			
 		}
+		log.info("@  UPLOAD CERT -> END Processing upload. @");
 		
+		log.info("@  REVOKE CERT -> START Processing revoke. @");
 		List<SignerUploadInformationEntity> toRevokeSignerInformationList = signerUploadInformationRepository.getSignerInformationToRevoke();
 		if (toRevokeSignerInformationList != null) {
 			for (SignerUploadInformationEntity signerInformation:toRevokeSignerInformationList) {
@@ -104,7 +150,28 @@ public class DgcWorker {
 			}
 			
 		}
+		log.info("@  REVOKE CERT -> END Processing revoke. @");
 
+		log.info("@  UPLOAD RULE -> START Processing upload. @");
+		List<BusinessRuleUploadEntity> toSendBusinessRuleList = businessRuleUploadRepository.getSignerInformationToSend();
+		if (toSendBusinessRuleList != null) {
+			for (BusinessRuleUploadEntity businessRuleUploadEntity:toSendBusinessRuleList) {
+				sendBusinessRule(businessRuleUploadEntity);
+			}
+			
+		}
+		log.info("@  UPLOAD RULE -> END Processing upload. @");
+		
+		log.info("@  REVOKE RULE -> START Processing revoke. @");
+		List<BusinessRuleUploadEntity> toRevokeBusinessRuleList = businessRuleUploadRepository.getSignerInformationToRevoke();
+		if (toRevokeBusinessRuleList != null) {
+			for (BusinessRuleUploadEntity businessRuleUploadEntity:toRevokeBusinessRuleList) {
+				revokeBusinessRule(businessRuleUploadEntity);
+			}
+			
+		}
+		log.info("@  REVOKE RULE -> END Processing revoke. @");
+		
 		log.info("@@@  UPLOAD -> END Processing upload. @@@");
 	}
 
@@ -112,13 +179,27 @@ public class DgcWorker {
 	@Scheduled(cron = "${dgc.worker.download.schedul}")
 	public void downloadWorker() {
 		log.info("###  DOWNLOAD -> START Processing download. ###");
+		
+		log.info("#  DOWNLOAD CERT -> START Processing download. #");
 		download();
-		log.info("###  DOWNLOAD -> END Processing download. ####");
+		log.info("#  DOWNLOAD CERT -> END Processing download. #");
+		
+		log.info("#  DOWNLOAD COUNTIES -> START Processing download. #");
+		downloadCountry();
+		log.info("#  DOWNLOAD COUNTIES -> END Processing download. #");
+		
+		log.info("#  DOWNLOAD VALUES -> START Processing download. #");
+		downloadValues();
+		log.info("#  DOWNLOAD VALUES -> END Processing download. #");
+
+		log.info("#  DOWNLOAD RULES -> START Processing download. #");
+		downloadRules();
+		log.info("#  DOWNLOAD RULES -> END Processing download. #");
+
+		log.info("###  DOWNLOAD -> END Processing download. ###");
 	}
 
 
-	
-	
 	@Transactional
 	private String send(SignerUploadInformationEntity signerInformationEntity) {
 		String report = null;
@@ -141,9 +222,9 @@ public class DgcWorker {
 
 			}
 			
-		} catch (RestApiException | CMSException | IOException | CertificateSignatureException | HttpClientErrorException e) {
+		} catch (Exception e) {
 			report = e.getMessage();
-			log.error("ERROR Processing upload RestApiException. -> batchTag: {} ", batchTag, e);
+			log.error("ERROR Processing upload Exception. -> batchTag: {} ", batchTag, e);
 		}
 		log.info("Upload INFO after sending -> batchTag: {} ", batchTag);
 		
@@ -175,9 +256,9 @@ public class DgcWorker {
 
 			}
 			
-		} catch (RestApiException | CMSException | IOException | CertificateSignatureException | HttpClientErrorException e) {
+		} catch (Exception e) {
 			report = e.getMessage();
-			log.error("ERROR Processing upload RestApiException. -> batchTag: {} ", batchTag, e);
+			log.error("ERROR Processing upload Exception. -> batchTag: {} ", batchTag, e);
 		}
 		log.info("Upload INFO after sending -> batchTag: {} ", batchTag);
 		
@@ -303,13 +384,330 @@ public class DgcWorker {
 				}
 			}
 
-		} catch (RestApiException e) {
+		} catch (Exception e) {
 			report = e.getMessage();
-			log.error("ERROR Processing download RestApiException. -> batchTag: {} ", batchTag, e);
+			log.error("ERROR Processing download Exception. -> batchTag: {} ", batchTag, e);
 		}
 		log.info("Download INFO after reciving -> batchTag: {} ", batchTag);
 
 		dgcLogRepository.save(DgcLogEntity.buildDownloadDgcLog("ALL", batchTag, report, akamaiReport, dgcLogInfoList, dgcLogAmount));
+	}
+	
+	
+	//BUSINESS RULE
+	
+	@Transactional
+	public String sendBusinessRule(BusinessRuleUploadEntity businessRuleUploadEntity) {
+		String report = null;
+		String batchTag = DscUtil.batchTagGenerator(OperationType.UPLOAD);
+
+		try {
+			
+			if (businessRuleUploadEntity != null) {
+				
+				String base64RawData = Base64.getEncoder().encodeToString(businessRuleUploadEntity.getRawData().getBytes());
+				String signedCertificate = signatureService.getSignatureForBytes(base64RawData);
+				
+				RestApiResponse<String> resp = client.uploadValidationRule(signedCertificate, originCountry);
+				report = resp.getStatusCode().toString();
+				
+				if (resp.getStatusCode() == RestApiClient.UPLOAD_STATUS_CREATED_201) {
+					ObjectMapper objectMapper = new ObjectMapper();
+					ValidationRule parsedRule = objectMapper.readValue(businessRuleUploadEntity.getRawData(), ValidationRule.class);
+					businessRuleUploadEntity.setIdentifier(parsedRule.getIdentifier());
+					businessRuleUploadEntity.setVersion(parsedRule.getVersion());
+					businessRuleUploadEntity.setUploadBatchTag(batchTag);
+					businessRuleUploadRepository.save(businessRuleUploadEntity);
+				}
+
+			}
+			
+		} catch (Exception e) {
+			report = e.getMessage();
+			log.error("ERROR Processing upload RestApiException. -> batchTag: {} ", batchTag, e);
+		}
+		log.info("Upload INFO after sending -> batchTag: {} ", batchTag);
+		
+		dgcRuleLogRepository.save(DgcRuleLogEntity.buildUploadRuleLog(batchTag, report));
+		
+		return report;
+	}
+	
+	@Transactional
+	private String revokeBusinessRule(BusinessRuleUploadEntity businessRuleUploadEntity) {
+		String report = null;
+		String batchTag = DscUtil.batchTagGenerator(OperationType.REVOKE);
+
+		try {
+			
+			if (businessRuleUploadEntity != null) {
+
+				ObjectMapper objectMapper = new ObjectMapper();
+				ValidationRule parsedRule = objectMapper.readValue(businessRuleUploadEntity.getRawData(), ValidationRule.class);
+
+				String base64RawData = Base64.getEncoder().encodeToString(parsedRule.getIdentifier().getBytes());
+				String signedCertificate = signatureService.getSignatureForBytes(base64RawData);
+
+				RestApiResponse<String> resp = client.deleteValidationRules(signedCertificate, originCountry);
+				report = resp.getStatusCode().toString();
+				
+				if (resp.getStatusCode() == RestApiClient.UPLOAD_STATUS_NO_CONTENT_204) {
+					businessRuleUploadEntity.setRevokedDate(new Date());
+					businessRuleUploadEntity.setRevokedBatchTag(batchTag);
+					businessRuleUploadRepository.save(businessRuleUploadEntity);
+				}
+
+			}
+			
+		} catch (Exception e) {
+			report = e.getMessage();
+			log.error("ERROR Processing upload Exception. -> batchTag: {} ", batchTag, e);
+		}
+		log.info("Upload INFO after sending -> batchTag: {} ", batchTag);
+		
+		dgcRuleLogRepository.save(DgcRuleLogEntity.buildRevokeRuleLog(batchTag, report));
+		
+		return report;
+	}
+
+	
+	
+	public void downloadCountry() {
+		String report = null;
+		String batchTag = DscUtil.batchTagGenerator(OperationType.DOWNLOAD);
+		
+		try {
+			RestApiResponse<String> resp = client.downloadCountryList();
+			report = resp.getStatusCode().toString();
+			
+			if (resp.getStatusCode() == RestApiClient.DOWNLOAD_STATUS_RETURNS_BATCH_200) {
+				String countries = resp.getData();
+				String hash = businessRulesUtils.calculateHash(countries);
+				
+				CountryListEntity countryListEntity = new CountryListEntity();
+				countryListEntity.setCountryListId(1L);
+				countryListEntity.setHash(hash);
+				countryListEntity.setRawData(countries);
+				countryListEntity.setDownloadBatchTag(batchTag);
+				countryListEntity.setCreatedAt(new Date());
+				
+				countryListRepository.deleteAll();
+				countryListRepository.save(countryListEntity);
+			}
+			
+			
+		} catch (NoSuchAlgorithmException e) {
+			report = e.getMessage();
+			log.error("ERROR Processing download NoSuchAlgorithmException. -> batchTag: {} ", batchTag, e);
+		} catch (Exception e) {
+			report = e.getMessage();
+			log.error("ERROR Processing download Exception. -> batchTag: {} ", batchTag, e);
+		}
+		log.info("Download INFO -> report: {} ", report);
+		
+		dgcRuleLogRepository.save(DgcRuleLogEntity.buildDownloadCountyLog(batchTag, report));
+	}
+	
+	public void downloadValues() {
+		String report = null;
+		String batchTag = DscUtil.batchTagGenerator(OperationType.DOWNLOAD);
+		
+		try {
+			RestApiResponse<List<String>> resp = client.getValuesetIds();
+			report = resp.getStatusCode().toString();
+			
+			List<ValueSetEntity> valueSetEntityList = new ArrayList<ValueSetEntity>();
+
+			if (resp.getStatusCode() == RestApiClient.DOWNLOAD_STATUS_RETURNS_BATCH_200) {
+				List<String> valuesetIds = resp.getData();
+				log.info("Download INFO after reciving -> valuesetIds: {} ", valuesetIds);
+				if (valuesetIds != null) {
+					for (String identifier:valuesetIds) {
+						RestApiResponse<String> valuesResp = client.getValueset(identifier);
+						if (resp.getStatusCode() == RestApiClient.DOWNLOAD_STATUS_RETURNS_BATCH_200) {
+							String values = valuesResp.getData();
+							String hash = businessRulesUtils.calculateHash(values);
+
+							ValueSetEntity valueSetEntity = new ValueSetEntity();
+							valueSetEntity.setIdentifier(identifier);
+							valueSetEntity.setHash(hash);
+							valueSetEntity.setRawData(values);
+							valueSetEntity.setDownloadBatchTag(batchTag);
+							valueSetEntity.setCreatedAt(new Date());
+							
+							valueSetEntityList.add(valueSetEntity);
+						}
+					}
+				}
+			}
+			
+			if (valueSetEntityList.size() > 0) {
+				valueSetRepository.deleteAll();
+				valueSetRepository.saveAll(valueSetEntityList);
+			}
+
+			log.info("Download INFO after reciving -> batchTag: {} ", batchTag);
+
+		} catch (NoSuchAlgorithmException e) {
+			report = e.getMessage();
+			log.error("ERROR Processing download NoSuchAlgorithmException. -> batchTag: {} ", batchTag, e);
+		} catch (Exception e) {
+			report = e.getMessage();
+			log.error("ERROR Processing download Exception. -> batchTag: {} ", batchTag, e);
+		}
+		
+		dgcRuleLogRepository.save(DgcRuleLogEntity.buildDownloadValueLog(batchTag, report));
+	}
+	
+	public void downloadRules() {
+		String report = null;
+		String akamaiReport = null;
+		String batchTag = DscUtil.batchTagGenerator(OperationType.DOWNLOAD);
+		
+		Map<String, List<DgcRuleLogInfo>> logInfo = new HashMap<String, List<DgcRuleLogInfo>>();
+		DgcRuleLogAmount amount = new DgcRuleLogAmount();
+
+		try {
+			
+			RestApiResponse<List<TrustListItemDto>> resp = client.downloadTrustListFilteredByType(CertificateType.UPLOAD);
+			report = resp.getStatusCode().toString();
+			
+			if (resp.getStatusCode() == RestApiClient.DOWNLOAD_STATUS_RETURNS_BATCH_200) {
+				
+				List<BusinessRuleEntity> businessRuleEntityList = new ArrayList<BusinessRuleEntity>(); 
+				List<BusinessRuleInvalidEntity> businessRuleInvalidEntityList = new ArrayList<BusinessRuleInvalidEntity>(); 
+
+				List<TrustListItemDto> trustUpload = resp.getData();
+				
+				if (trustUpload != null) {
+
+					Map<String, List<TrustListItemDto>> mapCountryTruest = new HashMap<>();
+					trustUpload.forEach(trust -> mapCountryTruest.computeIfAbsent(trust.getCountry(), k -> new ArrayList<>()).add(trust));
+					
+					List<String> countries = _getCountries();
+					
+					
+
+					for (String country:countries) {
+						RestApiResponse<Map<String, List<ValidationRuleDto>>> ruleResp = client.downloadValidationRules(country);
+						
+						logInfo.put(country, new ArrayList<DgcRuleLogInfo>());
+						
+						if (ruleResp.getStatusCode() == RestApiClient.DOWNLOAD_STATUS_RETURNS_BATCH_200) {
+							Map<String, List<ValidationRuleDto>> mapRule = ruleResp.getData();
+							List<TrustListItemDto> trustCountryList = mapCountryTruest.get(country);
+							
+							for (String identifier:mapRule.keySet()) {
+								List<ValidationRuleDto> rules = mapRule.get(identifier);
+								
+								for (ValidationRuleDto rule : rules) {
+									
+									ValidationRule validationRule = null;
+									if (signatureVerifier.checkRuleUploadCertificate(rule, trustCountryList, country)) {
+										validationRule = signatureVerifier.map(rule);
+									}
+									
+									if (validationRule != null) {
+										BusinessRuleEntity businessRuleEntity = new BusinessRuleEntity();
+										businessRuleEntity.setIdentifier(validationRule.getIdentifier());
+										businessRuleEntity.setCountry(validationRule.getCountry());
+										businessRuleEntity.setVersion(validationRule.getVersion());
+										businessRuleEntity.setHash(businessRulesUtils.calculateHash(validationRule.getRawJson()));
+										businessRuleEntity.setRawData(validationRule.getRawJson());
+										businessRuleEntity.setDownloadBatchTag(batchTag);
+										businessRuleEntity.setCreatedAt(new Date());
+
+										businessRuleEntityList.add(businessRuleEntity);
+										
+									} else {
+										BusinessRuleInvalidEntity businessRuleEntity = new BusinessRuleInvalidEntity();
+										businessRuleEntity.setIdentifier(identifier);
+										businessRuleEntity.setCountry(country);
+										businessRuleEntity.setVersion(rule.getVersion());
+										businessRuleEntity.setRawData(rule.getCms());
+										businessRuleEntity.setDownloadBatchTag(batchTag);
+										businessRuleEntity.setCreatedAt(new Date());
+
+										businessRuleInvalidEntityList.add(businessRuleEntity);
+									}
+								}
+
+							}
+					
+						}
+					}
+				
+					if (businessRuleEntityList.size() > 0) {
+						Integer numTotDocIntoDB = businessRuleRepository.setAllBusinessRuleRevoked(batchTag);
+						
+						for (BusinessRuleEntity businessRuleEntity:businessRuleEntityList) {
+							BusinessRuleEntity businessRuleEntityOld = businessRuleRepository.getByCountryAndHash(businessRuleEntity.getCountry(), businessRuleEntity.getHash(), batchTag);
+							if (businessRuleEntityOld != null) {
+								businessRuleEntityOld.setRevoked(false);
+								businessRuleEntityOld.setRevokedDate(null);
+								businessRuleEntityOld.setRevokedBatchTag(null);
+								
+								businessRuleRepository.save(businessRuleEntityOld);
+								logInfo.get(businessRuleEntityOld.getCountry()).add(new DgcRuleLogInfo(businessRuleEntityOld.getIdentifier(), true, true));
+								amount.incNumOld();
+							} else {
+								businessRuleRepository.save(businessRuleEntity);
+								logInfo.get(businessRuleEntity.getCountry()).add(new DgcRuleLogInfo(businessRuleEntity.getIdentifier(), true, false));
+								amount.incNumNew();
+							}
+						}
+						amount.setNumRevoked(numTotDocIntoDB-amount.getNumOld());
+					}
+					
+					if (businessRuleInvalidEntityList.size() > 0) {
+						for (BusinessRuleInvalidEntity businessRuleEntity:businessRuleInvalidEntityList) {
+							businessRuleInvalidRepository.save(businessRuleEntity);
+							logInfo.get(businessRuleEntity.getCountry()).add(new DgcRuleLogInfo(businessRuleEntity.getIdentifier(), false, false));
+							amount.incNumInvalid();
+						}
+					}
+	
+					amount.setNum(businessRuleEntityList.size()+businessRuleInvalidEntityList.size());
+					
+					log.info("Download INFO after reciving -> batchTag: {} ", batchTag);
+				}
+			
+				try {
+					if (akamaiFastPurge.getUrl()!=null && !"".equals(akamaiFastPurge.getUrl())) {
+						akamaiReport = akamaiFastPurge.invalidateRulesUrls();
+					}
+				} catch(Exception e) {
+					akamaiReport = "ERROR INVALIDATING AKAMAI CACHE";
+					log.error("ERROR Invalidating akamai cache. -> batchTag: {} ", batchTag, e);
+				}
+			}
+
+		} catch (NoSuchAlgorithmException e) {
+			report = e.getMessage();
+			log.error("ERROR Processing download NoSuchAlgorithmException. -> batchTag: {} ", batchTag, e);
+		} catch (RestApiException e) {
+			report = e.getMessage();
+			log.error("ERROR Processing download Exception. -> batchTag: {} ", batchTag, e);
+		}
+
+	
+		dgcRuleLogRepository.save(DgcRuleLogEntity.buildDownloadRuleLog(batchTag, report, akamaiReport, logInfo, amount));
+
+	}
+	
+	
+	private List<String> _getCountries() {
+		List<String> countries = null;
+		
+		CountryListEntity countryListEntity = countryListRepository.getCountries();
+		
+		if (countryListEntity != null) {
+			Gson gson = new Gson();
+			Type listType = new TypeToken<ArrayList<String>>(){}.getType();
+			countries = gson.fromJson(countryListEntity.getRawData(), listType);
+		}
+		
+		return countries;
 	}
 	
 }

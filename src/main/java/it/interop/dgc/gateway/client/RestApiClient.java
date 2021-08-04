@@ -15,12 +15,14 @@
 package it.interop.dgc.gateway.client;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
+import it.interop.dgc.gateway.dto.ValidationRuleDto;
 import it.interop.dgc.gateway.enums.CertificateType;
 
 public interface RestApiClient {
@@ -66,4 +68,16 @@ public interface RestApiClient {
 	public RestApiResponse<List<TrustListItemDto>> downloadTrustList()  throws RestApiException;
 	public RestApiResponse<List<TrustListItemDto>> downloadTrustListFilteredByType(CertificateType type)  throws RestApiException;
 	public RestApiResponse<List<TrustListItemDto>> downloadTrustListFilteredByCountryAndType(CertificateType type, String countryCode) throws RestApiException;
+	
+	//BUSINESS RULES
+	//UPLOAD
+	public RestApiResponse<String> uploadValidationRule(String cms, String countryCode)  throws RestApiException;
+	public RestApiResponse<String> deleteValidationRules(String cms, String countryCode)  throws RestApiException;
+	//DOWNLOAD
+	public RestApiResponse<String> downloadCountryList() throws RestApiException;
+	public RestApiResponse<List<String>> getValuesetIds() throws RestApiException;
+	public RestApiResponse<String> getValueset(String id) throws RestApiException;
+	public RestApiResponse<Map<String, List<ValidationRuleDto>>> downloadValidationRules(String country) throws RestApiException;
+	
+
 }

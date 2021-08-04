@@ -43,9 +43,10 @@ import org.bouncycastle.operator.OperatorCreationException;
 public class SignedCertificateMessageParser {
 
     private final byte[] raw;
-    private final byte[] rawPayload;
 
-    /**
+	private final byte[] rawPayload;
+
+	/**
      * The extracted payload certificate.
      */
     @Getter
@@ -160,6 +161,13 @@ public class SignedCertificateMessageParser {
         rawPayload = cmsPayload;
         afterPropertiesSet();
     }
+
+    public byte[] getRaw() {
+		return raw;
+	}
+    public byte[] getRawPayload() {
+		return rawPayload;
+	}
 
     private void afterPropertiesSet() {
         // Parse Base64

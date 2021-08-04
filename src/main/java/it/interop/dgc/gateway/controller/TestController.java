@@ -117,5 +117,70 @@ public class TestController {
 		}
 		return new ResponseEntity<String>(content.toString(), HttpStatus.OK);		
 	}
-	
+
+	@GetMapping("/testRuleAkamai")
+	public ResponseEntity<String> testRuleAkamai() {
+		StringBuffer content = new StringBuffer();
+		try {
+			if (akamaiFastPurge.getUrl()!=null && !"".equals(akamaiFastPurge.getUrl())) {
+				String akamaiReport = akamaiFastPurge.invalidateRulesUrls();
+				content.append("testAkamai: ").append(akamaiReport);
+			}
+		} catch(Exception e) {
+			content.append("ERROR INVALIDATING AKAMAI CACHE");
+			log.error("ERROR Invalidating akamai cache. ->  ", e);
+		}
+		return new ResponseEntity<String>(content.toString(), HttpStatus.OK);		
+	}
+
+	//BUSINESS RULE
+	@GetMapping("/testCountryDownload")
+	public ResponseEntity<String> testCountryDownload() {
+		StringBuffer content = new StringBuffer();
+		try {
+			
+			efgsWorker.downloadCountry();
+			log.info("OK");
+			content.append("testCountryDownload: OK");
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			content.append("Errore: ").append(e.getMessage()).append("<br>");
+		}
+		return new ResponseEntity<String>(content.toString(), HttpStatus.OK);		
+	}
+
+	@GetMapping("/testValuesDownload")
+	public ResponseEntity<String> testValuesDownload() {
+		StringBuffer content = new StringBuffer();
+		try {
+			
+			efgsWorker.downloadValues();
+			log.info("OK");
+			content.append("testValuesDownload: OK");
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			content.append("Errore: ").append(e.getMessage()).append("<br>");
+		}
+		return new ResponseEntity<String>(content.toString(), HttpStatus.OK);		
+	}
+
+	@GetMapping("/testBusinessRuleDownload")
+	public ResponseEntity<String> testBusinessRuleDownload() {
+		StringBuffer content = new StringBuffer();
+		try {
+			
+			efgsWorker.downloadRules();
+			log.info("OK");
+			content.append("testValuesDownload: OK");
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			content.append("Errore: ").append(e.getMessage()).append("<br>");
+		}
+		return new ResponseEntity<String>(content.toString(), HttpStatus.OK);		
+	}
+
+
 }

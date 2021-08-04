@@ -12,22 +12,32 @@
  *   You should have received a copy of the GNU Affero General Public License
  *   along with this program. If not, see <https://www.gnu.org/licenses/>.   
  */
-package it.interop.dgc.gateway.repository;
+package it.interop.dgc.gateway.entity;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-import it.interop.dgc.gateway.entity.DgcLogEntity;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Repository
-public class DgcLogRepository {
+@Data
+@AllArgsConstructor
+public class DgcRuleLogInfo {
 
-	@Autowired
-	private MongoTemplate mongoTemplate;
+    @Field(name="identifier")
+    private String identifier;
+    
+	@Field("verified_sign")
+	private boolean verifiedSign;
+	
+	@Field("already_exists")
+	private boolean alreadyExists;
 
-	public DgcLogEntity save(DgcLogEntity efgsWorkerInfo) {
-		return mongoTemplate.save(efgsWorkerInfo);
+	public DgcRuleLogInfo() {}
+	
+	public DgcRuleLogInfo(String identifier, String version, boolean verifiedSign, boolean alreadyExists) {
+		this.identifier = identifier;
+		this.verifiedSign = verifiedSign;
+		this.alreadyExists = alreadyExists;
 	}
 	
 }
