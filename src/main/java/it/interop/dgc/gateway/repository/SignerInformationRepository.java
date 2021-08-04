@@ -45,13 +45,14 @@ public class SignerInformationRepository {
 		return mongoTemplate.findOne(query, SignerInformationEntity.class);
 	}
 
-	//TODO ottimizzare query per revoca
+	// All DSC (except UK ones) must be revoked every batch run
 	public int setAllTrustedPartyRevoked(String revokedBatchTag) {
 		int numDoc = 0;
 		List<SignerInformationEntity> trustedPartyList = mongoTemplate.findAll(SignerInformationEntity.class);
 		if (trustedPartyList!=null) {
 			for (SignerInformationEntity trustedParty:trustedPartyList) {
-				if (!trustedParty.isRevoked()) {
+				// Prevent UK certs revoke
+				if (!trustedParty.isRevoked() && !trustedParty.getCountry().equalsIgnoreCase("UK")) {
 					trustedParty.setRevoked(true);
 					trustedParty.setRevokedDate(new Date());
 					trustedParty.setRevokedBatchTag(revokedBatchTag);
