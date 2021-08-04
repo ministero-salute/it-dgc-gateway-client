@@ -21,6 +21,7 @@ import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -62,14 +63,18 @@ public class AkamaiFastPurge {
 	@Value("${akamai.url}")
 	private String url;
 	
+	@Getter
+	@Value("${akamai.cpcode}")
+	private String cpcode;
+
 	@Value("${akamai.network}")
 	private String network;
 	
+	@Value("${akamai.urls_to_purge}")
+	private String urls;
+
 	@Value("${akamai.cpcodes_to_purge}")
 	private String cpcodes;
-
-	@Value("${akamai.cpcodes_rules_to_purge}")
-	private String rulescpcodes;
 
 	@Value("${akamai.user_agent}")
 	private String userAgent;
@@ -174,7 +179,7 @@ public class AkamaiFastPurge {
 		
 		
 		
-		HttpEntity<String> entity = new HttpEntity<String>(getStringRequestBody(cpcodes), headers);
+		HttpEntity<String> entity = new HttpEntity<String>(getUrlsStringRequestBody(urls), headers);
 
 		ResponseEntity<String> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, String.class);
 		
@@ -192,7 +197,7 @@ public class AkamaiFastPurge {
     	HttpStatus status = null;
     	
 		URI uri = UriComponentsBuilder
-				.fromUriString(getUrl())
+				.fromUriString(getCpcode())
 				.build().toUri();
 
 		log.info("START REST AkamaiFastPurge calling-> {}", uri.toString());
@@ -204,7 +209,7 @@ public class AkamaiFastPurge {
 		
 		
 		
-		HttpEntity<String> entity = new HttpEntity<String>(getStringRequestBody(rulescpcodes), headers);
+		HttpEntity<String> entity = new HttpEntity<String>(getCpcodesStringRequestBody(cpcodes), headers);
 
 		ResponseEntity<String> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, String.class);
 		
@@ -218,12 +223,16 @@ public class AkamaiFastPurge {
 		return status.toString();
     }
 
-    public static String getStringRequestBody(String urls) {
-//        Map<String, int[]> akamaiRequestMap = new HashMap<String, int[]>();
-//        akamaiRequestMap.put("objects", Stream.of(urls.split(",")).mapToInt(Integer::parseInt).toArray());
+    public static String getUrlsStringRequestBody(String urls) {
         Map<String, String[]> akamaiRequestMap = new HashMap<String, String[]>();
         akamaiRequestMap.put("objects", urls.split(","));
         return new Gson().toJson(akamaiRequestMap);
     }
+
+    public static String getCpcodesStringRequestBody(String urls) {
+      Map<String, int[]> akamaiRequestMap = new HashMap<String, int[]>();
+      akamaiRequestMap.put("objects", Stream.of(urls.split(",")).mapToInt(Integer::parseInt).toArray());
+      return new Gson().toJson(akamaiRequestMap);
+  }
 
 }

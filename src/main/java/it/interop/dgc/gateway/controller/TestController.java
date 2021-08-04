@@ -118,6 +118,21 @@ public class TestController {
 		return new ResponseEntity<String>(content.toString(), HttpStatus.OK);		
 	}
 
+	@GetMapping("/testRuleAkamai")
+	public ResponseEntity<String> testRuleAkamai() {
+		StringBuffer content = new StringBuffer();
+		try {
+			if (akamaiFastPurge.getUrl()!=null && !"".equals(akamaiFastPurge.getUrl())) {
+				String akamaiReport = akamaiFastPurge.invalidateRulesUrls();
+				content.append("testAkamai: ").append(akamaiReport);
+			}
+		} catch(Exception e) {
+			content.append("ERROR INVALIDATING AKAMAI CACHE");
+			log.error("ERROR Invalidating akamai cache. ->  ", e);
+		}
+		return new ResponseEntity<String>(content.toString(), HttpStatus.OK);		
+	}
+
 	//BUSINESS RULE
 	@GetMapping("/testCountryDownload")
 	public ResponseEntity<String> testCountryDownload() {
