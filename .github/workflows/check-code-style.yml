@@ -7,7 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Prettier check
-        uses: actionsx/prettier@v2
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
         with:
-          args: --check "**/*.java"
+          node-version: 14.x
+      - run: npm install prettier-plugin-java --save-dev
+      - run: npx prettier --check "**/*.java"
