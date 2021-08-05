@@ -19,9 +19,8 @@
  */
 package it.interop.dgc.gateway.dto;
 
-import java.util.Date;
-
 import it.interop.dgc.gateway.enums.CertificateType;
+import java.util.Date;
 import lombok.Data;
 
 @Data
@@ -34,7 +33,6 @@ public class TrustListItemDto {
     private String thumbprint;
     private String signature;
     private String rawData;
-    
-    private boolean verifiedSign;
 
+    private boolean verifiedSign;
 }

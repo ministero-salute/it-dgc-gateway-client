@@ -22,54 +22,52 @@ package it.interop.dgc.gateway.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-
+import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import lombok.Data;
-
-
 @Data
 @Document(collection = "business_rules")
 public class BusinessRuleEntity implements Serializable {
-	private static final long serialVersionUID = 7147938564859031373L;
 
-	@Id
+    private static final long serialVersionUID = 7147938564859031373L;
+
+    @Id
     private String id;
 
     /**
      * SHA-256 Thumbprint of the rule (hex encoded).
      */
-	@Field(name = "hash")
+    @Field(name = "hash")
     private String hash;
 
-	@Field(name = "identifier_name")
+    @Field(name = "identifier_name")
     private String identifier;
 
-	@Field(name = "version")
-	private String version;
+    @Field(name = "version")
+    private String version;
 
-	@Field(name = "country_code")
-	private String country;
+    @Field(name = "country_code")
+    private String country;
 
     @Field(name = "raw_data")
     private String rawData;
 
     @CreatedDate
-    @Field(name="created_at")
+    @Field(name = "created_at")
     private Date createdAt;
 
-	@Field("revoked")
-	private boolean revoked;
+    @Field("revoked")
+    private boolean revoked;
 
-	@Field("revoked_date")
-	private Date revokedDate;
+    @Field("revoked_date")
+    private Date revokedDate;
 
-    @Field(name="batch_tag")
+    @Field(name = "batch_tag")
     private String downloadBatchTag;
-    
-    @Field(name="batch_tag_revoke")
-    private String revokedBatchTag;    
+
+    @Field(name = "batch_tag_revoke")
+    private String revokedBatchTag;
 }

@@ -22,23 +22,22 @@ package it.interop.dgc.gateway.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-
+import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import lombok.Data;
-
 @Data
 @Document(collection = "country_list")
 public class CountryListEntity implements Serializable {
-	private static final long serialVersionUID = -3383002566473192925L;
 
-	@Id
+    private static final long serialVersionUID = -3383002566473192925L;
+
+    @Id
     private String id;
 
-	@Field(name = "id")
+    @Field(name = "id")
     private Long countryListId;
 
     @Field(name = "raw_data")
@@ -49,11 +48,11 @@ public class CountryListEntity implements Serializable {
 
     @Field(name = "signature")
     private String signature;
-    
+
     @CreatedDate
-    @Field(name="created_at")
+    @Field(name = "created_at")
     private Date createdAt;
 
-    @Field(name="batch_tag")
+    @Field(name = "batch_tag")
     private String downloadBatchTag;
 }

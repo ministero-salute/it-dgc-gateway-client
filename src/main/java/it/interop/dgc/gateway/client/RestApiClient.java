@@ -1,83 +1,122 @@
 /*-
  *   Copyright (C) 2021 Ministero della Salute and all other contributors.
- *   Please refer to the AUTHORS file for more information. 
- *   This program is free software: you can redistribute it and/or modify 
- *   it under the terms of the GNU Affero General Public License as 
+ *   Please refer to the AUTHORS file for more information.
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Affero General Public License as
  *   published by the Free Software Foundation, either version 3 of the
  *   License, or (at your option) any later version.
- *   This program is distributed in the hope that it will be useful, 
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of 
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *   GNU Affero General Public License for more details.
  *   You should have received a copy of the GNU Affero General Public License
- *   along with this program. If not, see <https://www.gnu.org/licenses/>.   
+ *   along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 package it.interop.dgc.gateway.client;
-
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.http.HttpStatus;
 
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.dto.ValidationRuleDto;
 import it.interop.dgc.gateway.enums.CertificateType;
+import java.util.List;
+import java.util.Map;
+import org.springframework.http.HttpStatus;
 
 public interface RestApiClient {
-	public static String NEXT_BATCH_TAG = "nextBatchTag";
-	public static String BATCH_TAG = "batchTag";
-	
-	//OK. Returns selected batch. - OK store data and try downloading next batch
-	public static HttpStatus DOWNLOAD_STATUS_RETURNS_BATCH_200 = HttpStatus.OK;
-	//Invalid BatchTag used. - KO throw exception
-	public static HttpStatus DOWNLOAD_STATUS_INVALID_BATCHTAG_400 = HttpStatus.BAD_REQUEST;
-	//Forbidden call in cause of missing or invalid client certificate. KO throw exception
-	public static HttpStatus DOWNLOAD_STATUS_FORBIDDEN_403 = HttpStatus.FORBIDDEN;
-	//BatchTag not found or no data exists. KO return next tag = null
-	public static HttpStatus DOWNLOAD_STATUS_BATCHTAG_NOT_FOUND_404 = HttpStatus.NOT_FOUND;
-	//Data format or content is not valid. KO
-	public static HttpStatus DOWNLOAD_STATUS_INVALID_CONTENT_406 = HttpStatus.NOT_ACCEPTABLE;
-	//Date for download expired. Date does not more exists. KO
-	public static HttpStatus DOWNLOAD_STATUS_EXPIRED_DATE_410 = HttpStatus.GONE;
+    public static String NEXT_BATCH_TAG = "nextBatchTag";
+    public static String BATCH_TAG = "batchTag";
 
-	//Database Entries created. - OK marked as sent
-	public static HttpStatus UPLOAD_STATUS_CREATED_201 = HttpStatus.CREATED;
-	//OK. Returns selected batch. - OK store data and try downloading next batch
-	public static HttpStatus UPLOAD_STATUS_NO_CONTENT_204 = HttpStatus.NO_CONTENT;
-	//Data partially added with warnings. More details in document. - OK marked as sent
-	public static HttpStatus UPLOAD_STATUS_WARNING_207 = HttpStatus.MULTI_STATUS;
-	//Signature not valid. Bad request. - KO retry
-	public static HttpStatus UPLOAD_STATUS_INVALID_SIGNATURE_400 = HttpStatus.BAD_REQUEST;
-	//Bad request. - KO retry
-	public static HttpStatus UPLOAD_STATUS_BAD_REQUEST_400 = HttpStatus.BAD_REQUEST;
-	//Forbidden call in cause of missing or invalid client certificate. - KO retry
-	public static HttpStatus UPLOAD_STATUS_FORBIDDEN_403 = HttpStatus.FORBIDDEN;
-	//Data format or content is not valid. - KO retry
-	public static HttpStatus UPLOAD_STATUS_INVALID_CONTENT_406 = HttpStatus.NOT_ACCEPTABLE;
-	//Data already exist. - KO retry
-	public static HttpStatus UPLOAD_STATUS_BATCHTAG_ALREADY_EXIST_409 = HttpStatus.CONFLICT;
-	//Not able to write data. Retry please. - KO retry
-	public static HttpStatus UPLOAD_STATUS_RETRY_500 = HttpStatus.INTERNAL_SERVER_ERROR;
-	
-	//UPLOAD
-	public RestApiResponse<String> postVerificationInformation(String cms, String countryCode)  throws RestApiException;
-	public RestApiResponse<String> revokeVerificationInformation(String cms, String countryCode)  throws RestApiException;
-	//DOWNLOAD
-	public RestApiResponse<List<TrustListItemDto>> downloadTrustList()  throws RestApiException;
-	public RestApiResponse<List<TrustListItemDto>> downloadTrustListFilteredByType(CertificateType type)  throws RestApiException;
-	public RestApiResponse<List<TrustListItemDto>> downloadTrustListFilteredByCountryAndType(CertificateType type, String countryCode) throws RestApiException;
-	
-	//BUSINESS RULES
-	//UPLOAD
-	public RestApiResponse<String> uploadValidationRule(String cms, String countryCode)  throws RestApiException;
-	public RestApiResponse<String> deleteValidationRules(String cms, String countryCode)  throws RestApiException;
-	//DOWNLOAD
-	public RestApiResponse<String> downloadCountryList() throws RestApiException;
-	public RestApiResponse<List<String>> getValuesetIds() throws RestApiException;
-	public RestApiResponse<String> getValueset(String id) throws RestApiException;
-	public RestApiResponse<Map<String, List<ValidationRuleDto>>> downloadValidationRules(String country) throws RestApiException;
-	
+    //OK. Returns selected batch. - OK store data and try downloading next batch
+    public static HttpStatus DOWNLOAD_STATUS_RETURNS_BATCH_200 = HttpStatus.OK;
+    //Invalid BatchTag used. - KO throw exception
+    public static HttpStatus DOWNLOAD_STATUS_INVALID_BATCHTAG_400 =
+        HttpStatus.BAD_REQUEST;
+    //Forbidden call in cause of missing or invalid client certificate. KO throw exception
+    public static HttpStatus DOWNLOAD_STATUS_FORBIDDEN_403 =
+        HttpStatus.FORBIDDEN;
+    //BatchTag not found or no data exists. KO return next tag = null
+    public static HttpStatus DOWNLOAD_STATUS_BATCHTAG_NOT_FOUND_404 =
+        HttpStatus.NOT_FOUND;
+    //Data format or content is not valid. KO
+    public static HttpStatus DOWNLOAD_STATUS_INVALID_CONTENT_406 =
+        HttpStatus.NOT_ACCEPTABLE;
+    //Date for download expired. Date does not more exists. KO
+    public static HttpStatus DOWNLOAD_STATUS_EXPIRED_DATE_410 = HttpStatus.GONE;
 
+    //Database Entries created. - OK marked as sent
+    public static HttpStatus UPLOAD_STATUS_CREATED_201 = HttpStatus.CREATED;
+    //OK. Returns selected batch. - OK store data and try downloading next batch
+    public static HttpStatus UPLOAD_STATUS_NO_CONTENT_204 =
+        HttpStatus.NO_CONTENT;
+    //Data partially added with warnings. More details in document. - OK marked as sent
+    public static HttpStatus UPLOAD_STATUS_WARNING_207 =
+        HttpStatus.MULTI_STATUS;
+    //Signature not valid. Bad request. - KO retry
+    public static HttpStatus UPLOAD_STATUS_INVALID_SIGNATURE_400 =
+        HttpStatus.BAD_REQUEST;
+    //Bad request. - KO retry
+    public static HttpStatus UPLOAD_STATUS_BAD_REQUEST_400 =
+        HttpStatus.BAD_REQUEST;
+    //Forbidden call in cause of missing or invalid client certificate. - KO retry
+    public static HttpStatus UPLOAD_STATUS_FORBIDDEN_403 = HttpStatus.FORBIDDEN;
+    //Data format or content is not valid. - KO retry
+    public static HttpStatus UPLOAD_STATUS_INVALID_CONTENT_406 =
+        HttpStatus.NOT_ACCEPTABLE;
+    //Data already exist. - KO retry
+    public static HttpStatus UPLOAD_STATUS_BATCHTAG_ALREADY_EXIST_409 =
+        HttpStatus.CONFLICT;
+    //Not able to write data. Retry please. - KO retry
+    public static HttpStatus UPLOAD_STATUS_RETRY_500 =
+        HttpStatus.INTERNAL_SERVER_ERROR;
+
+    //UPLOAD
+    public RestApiResponse<String> postVerificationInformation(
+        String cms,
+        String countryCode
+    ) throws RestApiException;
+
+    public RestApiResponse<String> revokeVerificationInformation(
+        String cms,
+        String countryCode
+    ) throws RestApiException;
+
+    //DOWNLOAD
+    public RestApiResponse<List<TrustListItemDto>> downloadTrustList()
+        throws RestApiException;
+
+    public RestApiResponse<List<TrustListItemDto>> downloadTrustListFilteredByType(
+        CertificateType type
+    ) throws RestApiException;
+
+    public RestApiResponse<List<TrustListItemDto>> downloadTrustListFilteredByCountryAndType(
+        CertificateType type,
+        String countryCode
+    ) throws RestApiException;
+
+    //BUSINESS RULES
+    //UPLOAD
+    public RestApiResponse<String> uploadValidationRule(
+        String cms,
+        String countryCode
+    ) throws RestApiException;
+
+    public RestApiResponse<String> deleteValidationRules(
+        String cms,
+        String countryCode
+    ) throws RestApiException;
+
+    //DOWNLOAD
+    public RestApiResponse<String> downloadCountryList()
+        throws RestApiException;
+
+    public RestApiResponse<List<String>> getValuesetIds()
+        throws RestApiException;
+
+    public RestApiResponse<String> getValueset(String id)
+        throws RestApiException;
+
+    public RestApiResponse<Map<String, List<ValidationRuleDto>>> downloadValidationRules(
+        String country
+    ) throws RestApiException;
 }
