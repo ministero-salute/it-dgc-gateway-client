@@ -25,7 +25,9 @@ import java.security.Security;
 import java.security.cert.CertificateException;
 import java.util.Base64;
 import java.util.Collection;
-
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.cms.CMSObjectIdentifiers;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cms.CMSException;
@@ -36,10 +38,6 @@ import org.bouncycastle.cms.SignerInformation;
 import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Abstract class to create typed CMS Message parsers.
@@ -116,7 +114,10 @@ public abstract class SignedMessageParser<T> {
      * @param cmsSignature base64 encoded detached CMS signature bytes.
      * @param cmsPayload   base64 encoded CMS message payload.
      */
-    protected SignedMessageParser(@NonNull byte[] cmsSignature, @NonNull byte[] cmsPayload) {
+    protected SignedMessageParser(
+        @NonNull byte[] cmsSignature,
+        @NonNull byte[] cmsPayload
+    ) {
         raw = cmsSignature;
         rawPayload = cmsPayload;
         afterPropertiesSet();
@@ -141,7 +142,10 @@ public abstract class SignedMessageParser<T> {
      * @param cmsSignature base64 encoded detached CMS signature string.
      * @param cmsPayload   base64 encoded CMS message payload string.
      */
-    protected SignedMessageParser(@NonNull String cmsSignature, @NonNull String cmsPayload) {
+    protected SignedMessageParser(
+        @NonNull String cmsSignature,
+        @NonNull String cmsPayload
+    ) {
         raw = cmsSignature.getBytes(StandardCharsets.UTF_8);
         rawPayload = cmsPayload.getBytes(StandardCharsets.UTF_8);
         afterPropertiesSet();
@@ -154,7 +158,10 @@ public abstract class SignedMessageParser<T> {
      * @param cmsSignature base64 encoded detached CMS signature bytes.
      * @param cmsPayload   base64 encoded CMS message payload string.
      */
-    protected SignedMessageParser(@NonNull byte[] cmsSignature, @NonNull String cmsPayload) {
+    protected SignedMessageParser(
+        @NonNull byte[] cmsSignature,
+        @NonNull String cmsPayload
+    ) {
         raw = cmsSignature;
         rawPayload = cmsPayload.getBytes(StandardCharsets.UTF_8);
         afterPropertiesSet();
@@ -167,7 +174,10 @@ public abstract class SignedMessageParser<T> {
      * @param cmsSignature base64 encoded detached CMS signature string.
      * @param cmsPayload   base64 encoded CMS message payload bytes.
      */
-    protected SignedMessageParser(@NonNull String cmsSignature, @NonNull byte[] cmsPayload) {
+    protected SignedMessageParser(
+        @NonNull String cmsSignature,
+        @NonNull byte[] cmsPayload
+    ) {
         raw = cmsSignature.getBytes(StandardCharsets.UTF_8);
         rawPayload = cmsPayload;
         afterPropertiesSet();
@@ -185,7 +195,6 @@ public abstract class SignedMessageParser<T> {
             if (rawPayload != null) {
                 cmsPayloadBytes = Base64.getDecoder().decode(rawPayload);
             }
-
         } catch (IllegalArgumentException e) {
             parserState = ParserState.FAILURE_INVALID_BASE64;
             return;
@@ -197,8 +206,11 @@ public abstract class SignedMessageParser<T> {
             if (rawPayload == null) {
                 cmsSignedData = new CMSSignedData(cmsBytes);
             } else {
-                CMSProcessableByteArray cmsProcessablePayload = new CMSProcessableByteArray(cmsPayloadBytes);
-                cmsSignedData = new CMSSignedData(cmsProcessablePayload, cmsBytes);
+                CMSProcessableByteArray cmsProcessablePayload = new CMSProcessableByteArray(
+                    cmsPayloadBytes
+                );
+                cmsSignedData =
+                    new CMSSignedData(cmsProcessablePayload, cmsBytes);
             }
         } catch (CMSException e) {
             parserState = ParserState.FAILURE_INVALID_CMS;
@@ -206,22 +218,29 @@ public abstract class SignedMessageParser<T> {
         }
 
         // Check Payload of CMS Message
-        if (cmsSignedData.getSignedContent().getContentType() != CMSObjectIdentifiers.data) {
+        if (
+            cmsSignedData.getSignedContent().getContentType() !=
+            CMSObjectIdentifiers.data
+        ) {
             parserState = ParserState.FAILURE_INVALID_CMS_BODY;
             return;
         }
 
         // Extract and convert payload
         try {
-            payload = convertFromBytes((byte[]) cmsSignedData.getSignedContent().getContent());
+            payload =
+                convertFromBytes(
+                    (byte[]) cmsSignedData.getSignedContent().getContent()
+                );
         } catch (Exception e) {
             parserState = ParserState.FAILURE_CMS_BODY_PARSING_FAILED;
             return;
         }
 
         // Get signer certificate
-        Collection<X509CertificateHolder> certificateHolderCollection =
-            cmsSignedData.getCertificates().getMatches(null);
+        Collection<X509CertificateHolder> certificateHolderCollection = cmsSignedData
+            .getCertificates()
+            .getMatches(null);
 
         if (certificateHolderCollection.size() != 1) {
             log.error("Signed Message contains more than 1 certificate");
@@ -232,7 +251,12 @@ public abstract class SignedMessageParser<T> {
 
         // Try to extract detached CMS Signature
         try {
-            signature = Base64.getEncoder().encodeToString(repackToDetachedCms(cmsSignedData).getEncoded());
+            signature =
+                Base64
+                    .getEncoder()
+                    .encodeToString(
+                        repackToDetachedCms(cmsSignedData).getEncoded()
+                    );
         } catch (IOException | CMSException e) {
             signature = null;
             log.error("Failed to repack CMS to get detached signature.");
@@ -244,12 +268,19 @@ public abstract class SignedMessageParser<T> {
             parserState = ParserState.FAILURE_CMS_SIGNER_INFO;
             return;
         }
-        SignerInformation signerInformation = cmsSignedData.getSignerInfos().iterator().next();
+        SignerInformation signerInformation = cmsSignedData
+            .getSignerInfos()
+            .iterator()
+            .next();
         try {
-            signatureVerified = signerInformation.verify(
-                new JcaSimpleSignerInfoVerifierBuilder().build(signingCertificate)
-            );
-        } catch (CMSException | OperatorCreationException | CertificateException e) {
+            signatureVerified =
+                signerInformation.verify(
+                    new JcaSimpleSignerInfoVerifierBuilder()
+                        .build(signingCertificate)
+                );
+        } catch (
+            CMSException | OperatorCreationException | CertificateException e
+        ) {
             log.error("Failed to validate Signature");
         }
 
@@ -263,7 +294,8 @@ public abstract class SignedMessageParser<T> {
      * @return CMS message without encapsulated data.
      * @throws CMSException if repacking fails.
      */
-    private CMSSignedData repackToDetachedCms(CMSSignedData input) throws CMSException {
+    private CMSSignedData repackToDetachedCms(CMSSignedData input)
+        throws CMSException {
         CMSSignedDataGenerator cmsGenerator = new CMSSignedDataGenerator();
         cmsGenerator.addCertificates(input.getCertificates());
         cmsGenerator.addSigners(input.getSignerInfos());
@@ -290,6 +322,6 @@ public abstract class SignedMessageParser<T> {
 
         FAILURE_CMS_BODY_PARSING_FAILED,
         FAILURE_CMS_SIGNER_INFO,
-        FAILURE_CMS_SIGNING_CERT_INVALID
+        FAILURE_CMS_SIGNING_CERT_INVALID,
     }
 }

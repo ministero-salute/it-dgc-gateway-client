@@ -56,7 +56,6 @@ public class CertificateUtils {
             byte[] kidBytes = Arrays.copyOfRange(hashBytes, 0, KID_BYTE_COUNT);
 
             return Base64.getEncoder().encodeToString(kidBytes);
-
         } catch (CertificateEncodingException | NoSuchAlgorithmException e) {
             log.error("Could not calculate kid of certificate.");
             return null;
@@ -72,11 +71,12 @@ public class CertificateUtils {
      */
     public String getCertKid(X509CertificateHolder x509CertificateHolder) {
         try {
-            byte[] hashBytes = calculateHashBytes(x509CertificateHolder.getEncoded());
+            byte[] hashBytes = calculateHashBytes(
+                x509CertificateHolder.getEncoded()
+            );
             byte[] kidBytes = Arrays.copyOfRange(hashBytes, 0, KID_BYTE_COUNT);
 
             return Base64.getEncoder().encodeToString(kidBytes);
-
         } catch (NoSuchAlgorithmException | IOException e) {
             log.error("Could not calculate kid of certificate.");
             return null;
@@ -104,7 +104,9 @@ public class CertificateUtils {
      * @param x509CertificateHolder the certificate the thumbprint should be calculated for.
      * @return 32-byte SHA-256 hash as hex encoded string
      */
-    public String getCertThumbprint(X509CertificateHolder x509CertificateHolder) {
+    public String getCertThumbprint(
+        X509CertificateHolder x509CertificateHolder
+    ) {
         try {
             return calculateHash(x509CertificateHolder.getEncoded());
         } catch (IOException | NoSuchAlgorithmException e) {
@@ -120,8 +122,9 @@ public class CertificateUtils {
      * @return converted certificate
      * @throws CertificateEncodingException if converting has failed.
      */
-    public X509CertificateHolder convertCertificate(X509Certificate inputCertificate)
-        throws CertificateEncodingException, IOException {
+    public X509CertificateHolder convertCertificate(
+        X509Certificate inputCertificate
+    ) throws CertificateEncodingException, IOException {
         return new X509CertificateHolder(inputCertificate.getEncoded());
     }
 
@@ -132,13 +135,17 @@ public class CertificateUtils {
      * @return converted certificate
      * @throws CertificateException if converting has failed.
      */
-    public X509Certificate convertCertificate(X509CertificateHolder inputCertificate)
-        throws CertificateException {
-        return new JcaX509CertificateConverter().getCertificate(inputCertificate);
+    public X509Certificate convertCertificate(
+        X509CertificateHolder inputCertificate
+    ) throws CertificateException {
+        return new JcaX509CertificateConverter()
+            .getCertificate(inputCertificate);
     }
 
     private String calculateHash(byte[] data) throws NoSuchAlgorithmException {
-        byte[] certHashBytes = MessageDigest.getInstance("SHA-256").digest(data);
+        byte[] certHashBytes = MessageDigest
+            .getInstance("SHA-256")
+            .digest(data);
         String hexString = new BigInteger(1, certHashBytes).toString(16);
 
         if (hexString.length() == 63) {
@@ -148,7 +155,8 @@ public class CertificateUtils {
         return hexString;
     }
 
-    private byte[] calculateHashBytes(byte[] data) throws NoSuchAlgorithmException {
+    private byte[] calculateHashBytes(byte[] data)
+        throws NoSuchAlgorithmException {
         return MessageDigest.getInstance("SHA-256").digest(data);
     }
 }

@@ -20,7 +20,6 @@
 package it.interop.dgc.gateway.signing;
 
 import java.nio.charset.StandardCharsets;
-
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,7 +51,10 @@ public class SignedStringMessageParser extends SignedMessageParser<String> {
      * @param cmsSignature base64 encoded detached CMS signature bytes.
      * @param cmsPayload   base64 encoded CMS message payload.
      */
-    public SignedStringMessageParser(@NonNull byte[] cmsSignature, @NonNull byte[] cmsPayload) {
+    public SignedStringMessageParser(
+        @NonNull byte[] cmsSignature,
+        @NonNull byte[] cmsPayload
+    ) {
         super(cmsSignature, cmsPayload);
     }
 
@@ -73,7 +75,10 @@ public class SignedStringMessageParser extends SignedMessageParser<String> {
      * @param cmsSignature base64 encoded detached CMS signature string.
      * @param cmsPayload   base64 encoded CMS message payload string.
      */
-    public SignedStringMessageParser(@NonNull String cmsSignature, @NonNull String cmsPayload) {
+    public SignedStringMessageParser(
+        @NonNull String cmsSignature,
+        @NonNull String cmsPayload
+    ) {
         super(cmsSignature, cmsPayload);
     }
 
@@ -84,7 +89,10 @@ public class SignedStringMessageParser extends SignedMessageParser<String> {
      * @param cmsSignature base64 encoded detached CMS signature bytes.
      * @param cmsPayload   base64 encoded CMS message payload string.
      */
-    public SignedStringMessageParser(@NonNull byte[] cmsSignature, @NonNull String cmsPayload) {
+    public SignedStringMessageParser(
+        @NonNull byte[] cmsSignature,
+        @NonNull String cmsPayload
+    ) {
         super(cmsSignature, cmsPayload);
     }
 
@@ -95,7 +103,10 @@ public class SignedStringMessageParser extends SignedMessageParser<String> {
      * @param cmsSignature base64 encoded detached CMS signature string.
      * @param cmsPayload   base64 encoded CMS message payload bytes.
      */
-    public SignedStringMessageParser(@NonNull String cmsSignature, @NonNull byte[] cmsPayload) {
+    public SignedStringMessageParser(
+        @NonNull String cmsSignature,
+        @NonNull byte[] cmsPayload
+    ) {
         super(cmsSignature, cmsPayload);
     }
 }

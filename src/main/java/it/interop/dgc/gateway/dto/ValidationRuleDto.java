@@ -21,17 +21,15 @@
 package it.interop.dgc.gateway.dto;
 
 import java.util.Date;
-
 import lombok.Data;
 
 @Data
 public class ValidationRuleDto {
 
-	private String version;
-	private Date validFrom;
-	private Date validTo;
-	private String cms;
-	
-	private boolean verifiedSign;
+    private String version;
+    private Date validFrom;
+    private Date validTo;
+    private String cms;
 
+    private boolean verifiedSign;
 }

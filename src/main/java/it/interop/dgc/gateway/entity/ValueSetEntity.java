@@ -22,22 +22,22 @@ package it.interop.dgc.gateway.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-
+import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import lombok.Data;
-
 @Data
 @Document(collection = "valuesets")
 public class ValueSetEntity implements Serializable {
-	private static final long serialVersionUID = 1822947920566700188L;
 
-	@Id
+    private static final long serialVersionUID = 1822947920566700188L;
+
+    @Id
     private String id;
-	/**
+
+    /**
      * SHA-256 Thumbprint of the valueset (hex encoded).
      */
     @Field(name = "hash")
@@ -50,9 +50,9 @@ public class ValueSetEntity implements Serializable {
     private String rawData;
 
     @CreatedDate
-    @Field(name="created_at")
+    @Field(name = "created_at")
     private Date createdAt;
 
-    @Field(name="batch_tag")
+    @Field(name = "batch_tag")
     private String downloadBatchTag;
 }

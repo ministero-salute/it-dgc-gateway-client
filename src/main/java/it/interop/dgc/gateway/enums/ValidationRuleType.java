@@ -24,5 +24,5 @@ public enum ValidationRuleType {
     /**
      * Rule is used to invalidate a certificate.
      */
-    INVALIDATION
+    INVALIDATION,
 }
