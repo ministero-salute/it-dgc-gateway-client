@@ -319,76 +319,65 @@ public class DgcWorker {
                     List<TrustListItemDto> trustList = resp
                         .getData()
                         .stream()
-                        .filter(
-                            cer ->
-                                cer.getCertificateType() ==
-                                CertificateType.CSCA ||
-                                cer.getCertificateType() == CertificateType.DSC
+                        .filter(cer ->
+                            cer.getCertificateType() == CertificateType.CSCA ||
+                            cer.getCertificateType() == CertificateType.DSC
                         )
                         .collect(Collectors.toList());
 
                     List<TrustListItemDto> trustListCsca = trustList
                         .stream()
-                        .filter(
-                            csca ->
-                                csca.getCertificateType() ==
-                                CertificateType.CSCA
+                        .filter(csca ->
+                            csca.getCertificateType() == CertificateType.CSCA
                         )
                         .collect(Collectors.toList());
 
                     //Verifica firme CSCA
                     if (trustListCsca != null && trustListCsca.size() > 0) {
-                        trustListCsca.forEach(
-                            csca -> {
-                                csca.setVerifiedSign(
-                                    signatureVerifier.checkTrustAnchorSignature(
-                                        csca
-                                    )
-                                );
-                            }
-                        );
+                        trustListCsca.forEach(csca -> {
+                            csca.setVerifiedSign(
+                                signatureVerifier.checkTrustAnchorSignature(
+                                    csca
+                                )
+                            );
+                        });
 
                         List<TrustListItemDto> trustListDsc = trustList
                             .stream()
-                            .filter(
-                                dsc ->
-                                    dsc.getCertificateType() ==
-                                    CertificateType.DSC
+                            .filter(dsc ->
+                                dsc.getCertificateType() == CertificateType.DSC
                             )
                             .collect(Collectors.toList());
 
                         //Verifica firme DSC
                         if (trustListDsc != null && trustListDsc.size() > 0) {
-                            trustListDsc.forEach(
-                                dsc -> {
-                                    dsc.setVerifiedSign(false);
-                                    List<TrustListItemDto> trustListCscaCountry = trustListCsca
-                                        .stream()
-                                        .filter(
-                                            csca ->
-                                                csca
-                                                    .getCountry()
-                                                    .equals(dsc.getCountry()) &&
-                                                csca.isVerifiedSign()
-                                        )
-                                        .collect(Collectors.toList());
-                                    if (
-                                        trustListCscaCountry != null &&
-                                        trustListCscaCountry.size() > 0
-                                    ) {
-                                        for (TrustListItemDto csca : trustListCscaCountry) {
-                                            boolean isVerified = signatureVerifier.trustListItemSignedByCa(
-                                                dsc,
-                                                csca
-                                            );
-                                            dsc.setVerifiedSign(isVerified);
-                                            if (isVerified) {
-                                                break;
-                                            }
+                            trustListDsc.forEach(dsc -> {
+                                dsc.setVerifiedSign(false);
+                                List<TrustListItemDto> trustListCscaCountry = trustListCsca
+                                    .stream()
+                                    .filter(csca ->
+                                        csca
+                                            .getCountry()
+                                            .equals(dsc.getCountry()) &&
+                                        csca.isVerifiedSign()
+                                    )
+                                    .collect(Collectors.toList());
+                                if (
+                                    trustListCscaCountry != null &&
+                                    trustListCscaCountry.size() > 0
+                                ) {
+                                    for (TrustListItemDto csca : trustListCscaCountry) {
+                                        boolean isVerified = signatureVerifier.trustListItemSignedByCa(
+                                            dsc,
+                                            csca
+                                        );
+                                        dsc.setVerifiedSign(isVerified);
+                                        if (isVerified) {
+                                            break;
                                         }
                                     }
                                 }
-                            );
+                            });
                         }
 
                         Integer numTotDocIntoDB = signerInformationRepository.setAllTrustedPartyRevoked(
@@ -781,14 +770,13 @@ public class DgcWorker {
 
                 if (trustUpload != null) {
                     Map<String, List<TrustListItemDto>> mapCountryTruest = new HashMap<>();
-                    trustUpload.forEach(
-                        trust ->
-                            mapCountryTruest
-                                .computeIfAbsent(
-                                    trust.getCountry(),
-                                    k -> new ArrayList<>()
-                                )
-                                .add(trust)
+                    trustUpload.forEach(trust ->
+                        mapCountryTruest
+                            .computeIfAbsent(
+                                trust.getCountry(),
+                                k -> new ArrayList<>()
+                            )
+                            .add(trust)
                     );
 
                     List<String> countries = _getCountries();
