@@ -662,14 +662,10 @@ class DgcWorkerTest {
         Map<String, List<TrustListItemDto>> mapCountryTrust = new HashMap<>();
         uploadCerts
             .getData()
-            .forEach(
-                trust ->
-                    mapCountryTrust
-                        .computeIfAbsent(
-                            trust.getCountry(),
-                            k -> new ArrayList<>()
-                        )
-                        .add(trust)
+            .forEach(trust ->
+                mapCountryTrust
+                    .computeIfAbsent(trust.getCountry(), k -> new ArrayList<>())
+                    .add(trust)
             );
 
         Mockito
@@ -768,14 +764,10 @@ class DgcWorkerTest {
         Map<String, List<TrustListItemDto>> mapCountryTrust = new HashMap<>();
         uploadCerts
             .getData()
-            .forEach(
-                trust ->
-                    mapCountryTrust
-                        .computeIfAbsent(
-                            trust.getCountry(),
-                            k -> new ArrayList<>()
-                        )
-                        .add(trust)
+            .forEach(trust ->
+                mapCountryTrust
+                    .computeIfAbsent(trust.getCountry(), k -> new ArrayList<>())
+                    .add(trust)
             );
 
         Mockito
