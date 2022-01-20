@@ -15,7 +15,7 @@ pr:
     - releases/*
 
 pool:
-  pool: Azure Pipelines
+  vmImage: 'ubuntu-latest'
 
 resources:
   containers:
