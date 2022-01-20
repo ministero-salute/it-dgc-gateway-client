@@ -59,7 +59,7 @@ public class SignerInformationRepository {
                 // Prevent UK certs revoke
                 if (
                     !trustedParty.isRevoked() &&
-                    !trustedParty.getCountry().equalsIgnoreCase("UK")
+                    !trustedParty.getDownloadBatchTag().startsWith("MANUAL")
                 ) {
                     trustedParty.setRevoked(true);
                     trustedParty.setRevokedDate(new Date());
