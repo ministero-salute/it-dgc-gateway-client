@@ -25,6 +25,7 @@ import it.interop.dgc.gateway.dto.ValidationRuleDto;
 import it.interop.dgc.gateway.enums.CertificateType;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -422,6 +423,8 @@ public class RestApiClientImpl
             log.info("REST Client response-> {}", respEntity.getStatusCode());
 
             if (respEntity.getStatusCode() == HttpStatus.OK) {
+            	
+            	System.out.println("Lorenzo "+new String(respEntity.getBody()));
                 Gson gson = new Gson();
                 Type trustListType = new TypeToken<HashMap<String, List<ValidationRuleDto>>>() {}
                     .getType();
@@ -543,44 +546,39 @@ public class RestApiClientImpl
 	@Override
 	public RestApiResponse<List<RevocationListItemDto>> downloadRevocationList() throws RestApiException {
 		// TODO Auto-generated method stub
-//		 Map<String, String> urlParams = new HashMap<>();
-//	        urlParams.put("country", country);
+		URI uri = UriComponentsBuilder
+				.fromUriString(new StringBuffer(getBaseUrl()).append("/revocation-list").toString()).build().encode()
+				.toUri();
 
-	        URI uri = UriComponentsBuilder
-	            .fromUriString(
-	                new StringBuffer(getBaseUrl())
-	                    .append("/revocation-list")
-	                    .toString()
-	            )
-	            .build()
-	            .encode()
-	            .toUri();
+		log.info("START REST Client calling-> {}", uri.toString());
 
-	        log.info("START REST Client calling-> {}", uri.toString());
+		ZonedDateTime now = ZonedDateTime.now();
 
-	        HttpHeaders headers = makeBaseHeaders();
-	        headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
-	        headers.set(HttpHeaders.IF_MODIFIED_SINCE,"2021-06-01T00:00:00Z");
-	        
-	        HttpEntity<Void> entity = new HttpEntity<Void>(headers);
+		HttpHeaders headers = makeBaseHeaders();
+		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+		headers.set(HttpHeaders.IF_MODIFIED_SINCE, "2021-06-01T00:00:00Z");
 
-	        ResponseEntity<byte[]> respEntity = getRestTemplate()
-	            .exchange(uri, HttpMethod.GET, entity, byte[].class);
+		HttpEntity<Void> entity = new HttpEntity<Void>(headers);
 
-	        if (respEntity != null) {
-	            log.info("REST Client response-> {}", respEntity.getStatusCode());
+		ResponseEntity<byte[]> respEntity = getRestTemplate().exchange(uri, HttpMethod.GET, entity, byte[].class);
+		
+		Map<String, List<RevocationListItemDto>> mapRules = null;
 
-	            if (respEntity.getStatusCode() == HttpStatus.OK) {
-	            	System.out.println(new String(respEntity.getBody()));
-//	                Gson gson = new Gson();
-//	                Type trustListType = new TypeToken<HashMap<String, List<ValidationRuleDto>>>() {}
-//	                    .getType();
+		if (respEntity != null) {
+			log.info("REST Client response-> {}", respEntity.getStatusCode());
+
+			if (respEntity.getStatusCode() == HttpStatus.OK) {
+				System.out.println(new String(respEntity.getBody()));
+				
+				Gson gson = new Gson();
+				Type revocationListType = new TypeToken<HashMap<String, List<RevocationListItemDto>>>() {
+				}.getType();
+
 //	                mapRules =
-//	                    gson.fromJson(
-//	                        new String(respEntity.getBody()),
-//	                        trustListType
-//	                    );
-	            }
+				gson.fromJson(new String(respEntity.getBody()), RevocationListItemDto.class);
+				System.out.println();
+
+			}
 
 //	            restApiResponse =
 //	                new RestApiResponse<Map<String, List<ValidationRuleDto>>>(
@@ -588,9 +586,9 @@ public class RestApiClientImpl
 //	                    headersToMap(respEntity.getHeaders()),
 //	                    mapRules
 //	                );
-	        }
+		}
 
-	        log.info("END REST Client calling-> {}", uri.toString());
+		log.info("END REST Client calling-> {}", uri.toString());
 //	        return restApiResponse;
 		return null;
 	}
