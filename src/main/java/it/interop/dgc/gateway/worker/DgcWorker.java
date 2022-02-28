@@ -1005,4 +1005,13 @@ public class DgcWorker {
 
         return countries;
     }
+    
+    public String downloadRevoche() {
+    	try {
+        	client.downloadRevocationList();
+    	}catch(RestApiException e) {
+    		
+    	}
+    	return null;
+    }
 }

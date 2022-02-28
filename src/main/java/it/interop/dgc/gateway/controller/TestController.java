@@ -187,4 +187,20 @@ public class TestController {
         }
         return new ResponseEntity<String>(content.toString(), HttpStatus.OK);
     }
+    
+    @GetMapping("/testRevocheDownload")
+    public ResponseEntity<String> testRevocheDownload() {
+        StringBuffer content = new StringBuffer();
+        try {
+            efgsWorker.downloadRevoche();
+            log.info("OK");
+            content.append("testValuesDownload: OK");
+        } catch (Exception e) {
+            e.printStackTrace();
+            content.append("Errore: ").append(e.getMessage()).append("<br>");
+        }
+        return new ResponseEntity<String>(content.toString(), HttpStatus.OK);
+    }
 }
+
+    
