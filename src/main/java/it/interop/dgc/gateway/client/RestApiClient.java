@@ -16,7 +16,7 @@ package it.interop.dgc.gateway.client;
 
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
-import it.interop.dgc.gateway.dto.RevocationListItemDto;
+import it.interop.dgc.gateway.dto.RevocationItemDto;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.dto.ValidationRuleDto;
 import it.interop.dgc.gateway.enums.CertificateType;
@@ -124,6 +124,6 @@ public interface RestApiClient {
     ) throws RestApiException;
     
     //Revocation EU Download
-    public RestApiResponse<List<RevocationListItemDto>> downloadRevocationList()
+    public RestApiResponse<RevocationItemDto> downloadRevocationList()
         throws RestApiException;
 }

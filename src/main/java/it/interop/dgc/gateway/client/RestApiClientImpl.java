@@ -14,12 +14,17 @@
  */
 package it.interop.dgc.gateway.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import it.interop.dgc.gateway.client.base.RestApiClientBase;
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
-import it.interop.dgc.gateway.dto.RevocationListItemDto;
+import it.interop.dgc.gateway.dto.RevocationBatchListItemDto;
+import it.interop.dgc.gateway.dto.RevocationItemDto;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.dto.ValidationRuleDto;
 import it.interop.dgc.gateway.enums.CertificateType;
@@ -544,7 +549,7 @@ public class RestApiClientImpl
     }
 
 	@Override
-	public RestApiResponse<List<RevocationListItemDto>> downloadRevocationList() throws RestApiException {
+	public RestApiResponse<RevocationItemDto> downloadRevocationList() throws RestApiException {
 		// TODO Auto-generated method stub
 		URI uri = UriComponentsBuilder
 				.fromUriString(new StringBuffer(getBaseUrl()).append("/revocation-list").toString()).build().encode()
@@ -559,38 +564,40 @@ public class RestApiClientImpl
 		headers.set(HttpHeaders.IF_MODIFIED_SINCE, "2021-06-01T00:00:00Z");
 
 		HttpEntity<Void> entity = new HttpEntity<Void>(headers);
-
 		ResponseEntity<byte[]> respEntity = getRestTemplate().exchange(uri, HttpMethod.GET, entity, byte[].class);
-		
-		Map<String, List<RevocationListItemDto>> mapRules = null;
+		RestApiResponse<RevocationItemDto> restApiResponse = null;
+		RevocationItemDto revocationItemDto = new RevocationItemDto();
 
 		if (respEntity != null) {
 			log.info("REST Client response-> {}", respEntity.getStatusCode());
 
 			if (respEntity.getStatusCode() == HttpStatus.OK) {
-				System.out.println(new String(respEntity.getBody()));
-				
+
 				Gson gson = new Gson();
-				Type revocationListType = new TypeToken<HashMap<String, List<RevocationListItemDto>>>() {
+				Type revocationListType = new TypeToken<ArrayList<RevocationItemDto>>() {
 				}.getType();
 
-//	                mapRules =
-				gson.fromJson(new String(respEntity.getBody()), RevocationListItemDto.class);
-				System.out.println();
+				ObjectMapper mapper = new ObjectMapper();
+				JsonNode jsonNode;
+				try {
+
+					jsonNode = mapper.readTree(new String(respEntity.getBody()));
+					revocationItemDto
+							.setBatches(gson.fromJson((jsonNode.findValue("batches")).toString(), revocationListType));
+					revocationItemDto.setMore(Boolean.parseBoolean(jsonNode.findValue("more").toString()));
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 
 			}
+			restApiResponse = new RestApiResponse<RevocationItemDto>(respEntity.getStatusCode(),
+					headersToMap(respEntity.getHeaders()), revocationItemDto);
 
-//	            restApiResponse =
-//	                new RestApiResponse<Map<String, List<ValidationRuleDto>>>(
-//	                    respEntity.getStatusCode(),
-//	                    headersToMap(respEntity.getHeaders()),
-//	                    mapRules
-//	                );
 		}
 
 		log.info("END REST Client calling-> {}", uri.toString());
-//	        return restApiResponse;
-		return null;
+		return restApiResponse;
 	}
     
     
