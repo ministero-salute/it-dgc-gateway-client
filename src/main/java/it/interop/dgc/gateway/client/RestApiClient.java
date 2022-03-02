@@ -16,6 +16,7 @@ package it.interop.dgc.gateway.client;
 
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
+import it.interop.dgc.gateway.dto.RevocationBatchDownloadDto;
 import it.interop.dgc.gateway.dto.RevocationItemDto;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.dto.ValidationRuleDto;
@@ -123,7 +124,12 @@ public interface RestApiClient {
         String country
     ) throws RestApiException;
     
-    //Revocation EU Download
-    public RestApiResponse<RevocationItemDto> downloadRevocationList()
-        throws RestApiException;
+	// Revocation EU Download
+	public RestApiResponse<RevocationItemDto> downloadRevocationList() throws RestApiException;
+
+	/**
+	 * Endpoint to download Revocation Batch.
+	 */
+	public RestApiResponse<String> downloadBatch(String batchId) throws RestApiException;
+
 }

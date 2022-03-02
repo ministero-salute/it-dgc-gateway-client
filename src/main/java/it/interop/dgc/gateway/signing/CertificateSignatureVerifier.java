@@ -19,11 +19,6 @@
  */
 package it.interop.dgc.gateway.signing;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import it.interop.dgc.gateway.dto.TrustListItemDto;
-import it.interop.dgc.gateway.dto.ValidationRuleDto;
-import it.interop.dgc.gateway.model.ValidationRule;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
@@ -36,8 +31,9 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
 import javax.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
+
 import org.bouncycastle.cert.CertException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -47,6 +43,16 @@ import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import it.interop.dgc.gateway.dto.TrustListItemDto;
+import it.interop.dgc.gateway.dto.ValidationBatchDto;
+import it.interop.dgc.gateway.dto.ValidationRuleDto;
+import it.interop.dgc.gateway.model.ValidationBatch;
+import it.interop.dgc.gateway.model.ValidationRule;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class contains the methods to verify a batch signature.
@@ -288,5 +294,31 @@ public class CertificateSignatureVerifier {
         } catch (JsonProcessingException e) {
             return null;
         }
-    }
+    }   
+    
+	public boolean revocationCheckCmsSignature(ValidationBatchDto validationBatchDto) {
+		SignedStringMessageParser parser = new SignedStringMessageParser(validationBatchDto.getCms());
+		if (parser.getParserState() != SignedMessageParser.ParserState.SUCCESS) {
+			log.error("Invalid CMS for Revocation EU​​​​ ​​​​​​​​");
+			return false;
+		}
+		if (!parser.isSignatureVerified()) {
+			log.error("Invalid CMS for Revocation EU​​​​ ");
+			return false;
+		}
+		return true;
+	}
+
+	public ValidationBatch map(ValidationBatchDto dto) {
+		SignedStringMessageParser parser = new SignedStringMessageParser(dto.getCms());
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			ValidationBatch parsedRule = objectMapper.readValue(parser.getPayload(), ValidationBatch.class);
+			parsedRule.setRawJson(parser.getPayload());
+			return parsedRule;
+		} catch (JsonProcessingException e) {
+			return null;
+		}
+	}
+	
 }

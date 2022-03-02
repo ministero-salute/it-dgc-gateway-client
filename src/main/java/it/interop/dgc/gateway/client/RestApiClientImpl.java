@@ -23,6 +23,7 @@ import com.google.gson.reflect.TypeToken;
 import it.interop.dgc.gateway.client.base.RestApiClientBase;
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
+import it.interop.dgc.gateway.dto.RevocationBatchDownloadDto;
 import it.interop.dgc.gateway.dto.RevocationBatchListItemDto;
 import it.interop.dgc.gateway.dto.RevocationItemDto;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
@@ -36,6 +37,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -574,7 +578,7 @@ public class RestApiClientImpl
 			if (respEntity.getStatusCode() == HttpStatus.OK) {
 
 				Gson gson = new Gson();
-				Type revocationListType = new TypeToken<ArrayList<RevocationItemDto>>() {
+				Type revocationListType = new TypeToken<ArrayList<RevocationBatchListItemDto>>() {
 				}.getType();
 
 				ObjectMapper mapper = new ObjectMapper();
@@ -594,6 +598,56 @@ public class RestApiClientImpl
 			restApiResponse = new RestApiResponse<RevocationItemDto>(respEntity.getStatusCode(),
 					headersToMap(respEntity.getHeaders()), revocationItemDto);
 
+		}
+
+		log.info("END REST Client calling-> {}", uri.toString());
+		return restApiResponse;
+	}
+
+    @Override
+    public RestApiResponse<String> downloadBatch(
+        String batchId
+    ) throws RestApiException {
+        Map<String, String> urlParams = new HashMap<>();
+        urlParams.put("batchId", batchId);
+
+        URI uri = UriComponentsBuilder
+            .fromUriString(
+                new StringBuffer(getBaseUrl())
+                    .append("/revocation-list/{batchId}")
+                    .toString()
+            )
+            .buildAndExpand(urlParams)
+            .encode()
+            .toUri();
+        return _getRevocationBatch(uri);
+    }
+    
+	private RestApiResponse<String> _getRevocationBatch(URI uri) throws RestApiException {
+		log.info("START REST Client calling-> {}", uri.toString());
+
+		HttpHeaders headers = makeBaseHeaders();
+		headers.set(HttpHeaders.CONTENT_TYPE, "application/cms");
+
+		HttpEntity<Void> entity = new HttpEntity<Void>(headers);
+
+		ResponseEntity<byte[]> respEntity = getRestTemplate().exchange(uri, HttpMethod.GET, entity, byte[].class);
+
+		RestApiResponse<String> restApiResponse = null;
+
+		String batch = null;
+		
+		if (respEntity != null) {
+			log.info("REST Client response-> {}", respEntity.getStatusCode());
+			log.info("REST Client response-> {}", new String(respEntity.getBody()));
+			log.info("REST Client response-> {}", respEntity.getHeaders());
+
+			if (respEntity.getStatusCode() == HttpStatus.OK) {
+				batch = new String(respEntity.getBody());
+			}
+
+			restApiResponse = new RestApiResponse<String>(respEntity.getStatusCode(),
+					headersToMap(respEntity.getHeaders()), batch);
 		}
 
 		log.info("END REST Client calling-> {}", uri.toString());
