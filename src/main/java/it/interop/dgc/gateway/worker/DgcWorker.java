@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,6 +47,7 @@ import it.interop.dgc.gateway.client.base.RestApiResponse;
 import it.interop.dgc.gateway.dto.RevocationBatchListItemDto;
 import it.interop.dgc.gateway.dto.RevocationItemDto;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
+import it.interop.dgc.gateway.dto.ValidationBatchDto;
 import it.interop.dgc.gateway.dto.ValidationRuleDto;
 import it.interop.dgc.gateway.entity.BatchesDownloadEntity;
 import it.interop.dgc.gateway.entity.BusinessRuleEntity;
@@ -58,12 +61,14 @@ import it.interop.dgc.gateway.entity.DgcLogInfo;
 import it.interop.dgc.gateway.entity.DgcRuleLogAmount;
 import it.interop.dgc.gateway.entity.DgcRuleLogEntity;
 import it.interop.dgc.gateway.entity.DgcRuleLogInfo;
+import it.interop.dgc.gateway.entity.RevocationBatchEntity;
 import it.interop.dgc.gateway.entity.SignerInformationEntity;
 import it.interop.dgc.gateway.entity.SignerInvalidInformationEntity;
 import it.interop.dgc.gateway.entity.SignerUploadInformationEntity;
 import it.interop.dgc.gateway.entity.ValueSetEntity;
 import it.interop.dgc.gateway.enums.CertificateType;
 import it.interop.dgc.gateway.mapper.DgcMapper;
+import it.interop.dgc.gateway.model.ValidationBatch;
 import it.interop.dgc.gateway.model.ValidationRule;
 import it.interop.dgc.gateway.repository.BatchesDownloadRepository;
 import it.interop.dgc.gateway.repository.BusinessRuleInvalidRepository;
@@ -72,6 +77,7 @@ import it.interop.dgc.gateway.repository.BusinessRuleUploadRepository;
 import it.interop.dgc.gateway.repository.CountryListRepository;
 import it.interop.dgc.gateway.repository.DgcLogRepository;
 import it.interop.dgc.gateway.repository.DgcRuleLogRepository;
+import it.interop.dgc.gateway.repository.RevocationBatchRepository;
 import it.interop.dgc.gateway.repository.SignerInformationRepository;
 import it.interop.dgc.gateway.repository.SignerInvalidInformationRepository;
 import it.interop.dgc.gateway.repository.SignerUploadInformationRepository;
@@ -138,6 +144,9 @@ public class DgcWorker {
 
     @Autowired(required = true)
     private BusinessRulesUtils businessRulesUtils;
+    
+    @Autowired(required = true)
+    private RevocationBatchRepository revocationBatchRepository;
 
     @Scheduled(cron = "${dgc.worker.upload.schedul}")
     public void uploadWorker() {
@@ -1079,5 +1088,116 @@ public class DgcWorker {
 			}
 		
 		}
+	}
+
+
+	public String downloadBatch(String batchId) {
+		RevocationBatchEntity revocationBatchEntity = new RevocationBatchEntity();
+		ValidationBatchDto validationBatchDto = new ValidationBatchDto();
+
+		if (uuidCheck(batchId)) {
+
+			try {
+				ValidationBatch validationBatch = null;
+
+				RestApiResponse<String> cms = client.downloadBatch(batchId);
+				validationBatchDto.setCms(cms.getData());
+
+				if (signatureVerifier.revocationCheckCmsSignature(validationBatchDto)) {
+
+					validationBatch = signatureVerifier.map(validationBatchDto);
+
+					if (validationBatch != null) {
+
+						revocationBatchEntity.setBatchId(batchId);
+						revocationBatchEntity.setCreatedAt(new Date());
+						revocationBatchEntity.setExpires(validationBatch.getExpires());
+						revocationBatchEntity.setRawData(validationBatch.getRawJson());
+						revocationBatchEntity.setEntries(validationBatch.getEntries());
+
+					}else {
+						log.error("Problem with validation batch: {}", batchId);
+						return null;
+					}
+
+				} else {
+					log.error("Invalid CMS for Revocation EU​​​​ ", batchId);
+					return null;
+				}
+
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			log.error("Batch not valid regex error for ", batchId);
+			return null;
+		}
+		
+		// Save on MongoDB
+		revocationBatchRepository.save(revocationBatchEntity);
+		log.info("Saved on MongoDB -->: {}", batchId);
+		
+		
+		RevocationBatchEntity revocationBatchEntity = new RevocationBatchEntity();
+		ValidationBatchDto validationBatchDto = new ValidationBatchDto();
+
+		if (uuidCheck(batchId)) {
+
+			try {
+				ValidationBatch validationBatch = null;
+
+				RestApiResponse<String> cms = client.downloadBatch(batchId);
+				validationBatchDto.setCms(cms.getData());
+
+				if (signatureVerifier.revocationCheckCmsSignature(validationBatchDto)) {
+
+					validationBatch = signatureVerifier.map(validationBatchDto);
+
+					if (validationBatch != null) {
+
+						revocationBatchEntity.setBatchId(batchId);
+						revocationBatchEntity.setCreatedAt(new Date());
+						revocationBatchEntity.setExpires(validationBatch.getExpires());
+						revocationBatchEntity.setRawData(validationBatch.getRawJson());
+						revocationBatchEntity.setEntries(validationBatch.getEntries());
+
+					}else {
+						log.error("Problem with validation batch: {}", batchId);
+						return null;
+					}
+
+				} else {
+					log.error("Invalid CMS for Revocation EU​​​​ ", batchId);
+					return null;
+				}
+
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			log.error("Batch not valid regex error for ", batchId);
+			return null;
+		}
+		
+		// Save on MongoDB
+		revocationBatchRepository.save(revocationBatchEntity);
+		log.info("Saved on MongoDB -->: {}", batchId);
+
+		
+		
+		return null;
+	}
+	
+	public static final String UUID_REGEX = "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$";
+
+	private boolean uuidCheck(String UUID) {
+
+		Pattern p = Pattern.compile(UUID_REGEX);
+
+		Matcher m = p.matcher(UUID);
+
+		return m.matches();
 	}
 }

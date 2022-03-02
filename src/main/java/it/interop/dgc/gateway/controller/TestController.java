@@ -201,6 +201,20 @@ public class TestController {
         }
         return new ResponseEntity<String>(content.toString(), HttpStatus.OK);
     }
+
+	@GetMapping("/testRevocheDownloadBatch")
+	public ResponseEntity<String> testRevocheDownloadBatch() {
+		StringBuffer content = new StringBuffer();
+		try {
+			efgsWorker.downloadBatch("bfa7f2f0-43c9-4881-9270-7b8b44228f3a");
+			log.info("OK");
+			content.append("testRevocheDownloadBatch: OK");
+		} catch (Exception e) {
+			e.printStackTrace();
+			content.append("Errore: ").append(e.getMessage()).append("<br>");
+		}
+		return new ResponseEntity<String>(content.toString(), HttpStatus.OK);
+	}
 }
 
     
