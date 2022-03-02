@@ -17,6 +17,7 @@ package it.interop.dgc.gateway.entity;
 import java.io.Serializable;
 import java.util.Date;
 
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -29,8 +30,8 @@ public class BatchesDownloadEntity implements Serializable {
     private static final long serialVersionUID = 2330473769691102540L;
 
 
-    @Field("batch_id")
-    private String batchId;
+	@Indexed(unique=true)
+    private String batch_id;
 
     @Field("date")
     private Date date;

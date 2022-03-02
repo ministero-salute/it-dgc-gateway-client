@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -23,8 +24,8 @@ public class RevocationBatchEntity  implements Serializable {
 	@Id
     private String id;
 	
-	@Field(name = "batch_id")
-    private String batchId;
+	@Indexed(unique=true)
+    private String batch_id;
 	
 	@Field(name = "entries")
 	private List<BatchEntry> entries;

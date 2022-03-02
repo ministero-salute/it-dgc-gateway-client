@@ -1070,7 +1070,7 @@ public class DgcWorker {
 					
 				for(RevocationBatchListItemDto rbli : undeletedBatches ) {
 					BatchesDownloadEntity batchesDownloadEntity = new BatchesDownloadEntity();
-					batchesDownloadEntity.setBatchId(rbli.getBatchId());
+					batchesDownloadEntity.setBatch_id(rbli.getBatchId());
 					batchesDownloadEntity.setCountry(rbli.getCountry());
 					batchesDownloadEntity.setDate(rbli.getDate());
 					batchesDownloadEntity.setDeleted(rbli.getDeleted());
@@ -1079,7 +1079,7 @@ public class DgcWorker {
 				
 				for(RevocationBatchListItemDto rbli : deletedBatches ) {
 					BatchesDownloadEntity batchesDownloadEntity = new BatchesDownloadEntity();
-					batchesDownloadEntity.setBatchId(rbli.getBatchId());
+					batchesDownloadEntity.setBatch_id(rbli.getBatchId());
 					batchesDownloadEntity.setCountry(rbli.getCountry());
 					batchesDownloadEntity.setDate(rbli.getDate());
 					batchesDownloadEntity.setDeleted(rbli.getDeleted());
@@ -1109,7 +1109,7 @@ public class DgcWorker {
 
 					if (validationBatch != null) {
 
-						revocationBatchEntity.setBatchId(batchId);
+						revocationBatchEntity.setBatch_id(batchId);
 						revocationBatchEntity.setCreatedAt(new Date());
 						revocationBatchEntity.setExpires(validationBatch.getExpires());
 						revocationBatchEntity.setRawData(validationBatch.getRawJson());

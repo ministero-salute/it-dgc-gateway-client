@@ -40,7 +40,7 @@ public class BatchesDownloadRepository {
      		BatchesDownloadEntity batchesDownloadEntity
         ) {
     		Query query = new Query();
-    		query.addCriteria(new Criteria("_id").is(batchesDownloadEntity.getBatchId()));
+    		query.addCriteria(new Criteria("_id").is(batchesDownloadEntity.getBatch_id()));
             mongoTemplate.remove(query, batchesDownloadEntity.getClass());
             return;
         }
