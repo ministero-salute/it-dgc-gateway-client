@@ -37,26 +37,12 @@ import com.google.gson.reflect.TypeToken;
 import it.interop.dgc.gateway.client.base.RestApiClientBase;
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
-import it.interop.dgc.gateway.dto.RevocationBatchDownloadDto;
 import it.interop.dgc.gateway.dto.RevocationBatchListItemDto;
 import it.interop.dgc.gateway.dto.RevocationItemDto;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.dto.ValidationRuleDto;
 import it.interop.dgc.gateway.enums.CertificateType;
-<<<<<<< HEAD
-=======
-import java.lang.reflect.Type;
-import java.net.URI;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
->>>>>>> branch 'feature/revoche_eu' of https://github.com/sebaker88/it-dgc-gateway-client.git
+//github.com/sebaker88/it-dgc-gateway-client.git
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

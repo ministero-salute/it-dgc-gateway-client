@@ -25,9 +25,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -1092,53 +1092,6 @@ public class DgcWorker {
 
 
 	public String downloadBatch(String batchId) {
-		RevocationBatchEntity revocationBatchEntity = new RevocationBatchEntity();
-		ValidationBatchDto validationBatchDto = new ValidationBatchDto();
-
-		if (uuidCheck(batchId)) {
-
-			try {
-				ValidationBatch validationBatch = null;
-
-				RestApiResponse<String> cms = client.downloadBatch(batchId);
-				validationBatchDto.setCms(cms.getData());
-
-				if (signatureVerifier.revocationCheckCmsSignature(validationBatchDto)) {
-
-					validationBatch = signatureVerifier.map(validationBatchDto);
-
-					if (validationBatch != null) {
-
-						revocationBatchEntity.setBatchId(batchId);
-						revocationBatchEntity.setCreatedAt(new Date());
-						revocationBatchEntity.setExpires(validationBatch.getExpires());
-						revocationBatchEntity.setRawData(validationBatch.getRawJson());
-						revocationBatchEntity.setEntries(validationBatch.getEntries());
-
-					}else {
-						log.error("Problem with validation batch: {}", batchId);
-						return null;
-					}
-
-				} else {
-					log.error("Invalid CMS for Revocation EU​​​​ ", batchId);
-					return null;
-				}
-
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else {
-			log.error("Batch not valid regex error for ", batchId);
-			return null;
-		}
-		
-		// Save on MongoDB
-		revocationBatchRepository.save(revocationBatchEntity);
-		log.info("Saved on MongoDB -->: {}", batchId);
-		
-		
 		RevocationBatchEntity revocationBatchEntity = new RevocationBatchEntity();
 		ValidationBatchDto validationBatchDto = new ValidationBatchDto();
 
