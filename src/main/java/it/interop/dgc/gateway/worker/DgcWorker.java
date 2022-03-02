@@ -14,15 +14,39 @@
  */
 package it.interop.dgc.gateway.worker;
 
+import java.lang.reflect.Type;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
 import it.interop.dgc.gateway.akamai.AkamaiFastPurge;
 import it.interop.dgc.gateway.client.RestApiClient;
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
+import it.interop.dgc.gateway.dto.RevocationBatchListItemDto;
+import it.interop.dgc.gateway.dto.RevocationItemDto;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.dto.ValidationRuleDto;
+import it.interop.dgc.gateway.entity.BatchesDownloadEntity;
 import it.interop.dgc.gateway.entity.BusinessRuleEntity;
 import it.interop.dgc.gateway.entity.BusinessRuleInvalidEntity;
 import it.interop.dgc.gateway.entity.BusinessRuleUploadEntity;
@@ -41,6 +65,7 @@ import it.interop.dgc.gateway.entity.ValueSetEntity;
 import it.interop.dgc.gateway.enums.CertificateType;
 import it.interop.dgc.gateway.mapper.DgcMapper;
 import it.interop.dgc.gateway.model.ValidationRule;
+import it.interop.dgc.gateway.repository.BatchesDownloadRepository;
 import it.interop.dgc.gateway.repository.BusinessRuleInvalidRepository;
 import it.interop.dgc.gateway.repository.BusinessRuleRepository;
 import it.interop.dgc.gateway.repository.BusinessRuleUploadRepository;
@@ -55,22 +80,8 @@ import it.interop.dgc.gateway.signing.CertificateSignatureVerifier;
 import it.interop.dgc.gateway.signing.SignatureService;
 import it.interop.dgc.gateway.util.BusinessRulesUtils;
 import it.interop.dgc.gateway.util.DscUtil;
-import java.lang.reflect.Type;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -112,6 +123,9 @@ public class DgcWorker {
 
     @Autowired(required = true)
     private ValueSetRepository valueSetRepository;
+    
+    @Autowired(required = true)
+    private BatchesDownloadRepository batchesDownloadRepository;
 
     @Autowired(required = true)
     private SignatureService signatureService;
@@ -1006,12 +1020,64 @@ public class DgcWorker {
         return countries;
     }
     
-	public String downloadRevoche() {
-		try {
-			client.downloadRevocationList();
-		} catch (RestApiException e) {
-			e.printStackTrace();
+	public void downloadRevoche() {
+		
+		final String FIRST_DATE = "2021-06-01T00:00:00Z";
+		final String COUNTRY_IT="IT";
+		Boolean more = true;
+		String dateHeader = null; 
+		RestApiResponse<RevocationItemDto> downloadBatchList = null;
+		while(more) {
+			more=false;
+			BatchesDownloadEntity bde = batchesDownloadRepository.getLastBatch();
+			if(bde==null) {
+				dateHeader = FIRST_DATE;
+			}else {
+				ZoneId zoneId = ZoneId.systemDefault();
+				Instant instant = bde.getDate().toInstant();
+				ZonedDateTime zonedDateTime = instant.atZone(zoneId);
+				dateHeader = zonedDateTime.toString();
+			}
+			try {
+				downloadBatchList = client.downloadRevocationList(dateHeader);				
+			} catch (RestApiException e) {
+				e.printStackTrace();
+			}
+			if(downloadBatchList.getStatusCode()==HttpStatus.OK) {
+				RevocationItemDto revocationItemDto = downloadBatchList.getData();
+				more = revocationItemDto.getMore();
+			
+				List<RevocationBatchListItemDto> undeletedBatches = revocationItemDto.getBatches()
+						.stream()
+						.filter(boo -> !boo.getDeleted())
+						.filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
+						.collect(Collectors.toList());
+				
+				List<RevocationBatchListItemDto> deletedBatches = revocationItemDto.getBatches()
+						.stream()
+						.filter(boo -> boo.getDeleted())
+						.filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
+						.collect(Collectors.toList());
+					
+				for(RevocationBatchListItemDto rbli : undeletedBatches ) {
+					BatchesDownloadEntity batchesDownloadEntity = new BatchesDownloadEntity();
+					batchesDownloadEntity.setBatchId(rbli.getBatchId());
+					batchesDownloadEntity.setCountry(rbli.getCountry());
+					batchesDownloadEntity.setDate(rbli.getDate());
+					batchesDownloadEntity.setDeleted(rbli.getDeleted());
+					batchesDownloadRepository.save(batchesDownloadEntity);
+				}
+				
+				for(RevocationBatchListItemDto rbli : deletedBatches ) {
+					BatchesDownloadEntity batchesDownloadEntity = new BatchesDownloadEntity();
+					batchesDownloadEntity.setBatchId(rbli.getBatchId());
+					batchesDownloadEntity.setCountry(rbli.getCountry());
+					batchesDownloadEntity.setDate(rbli.getDate());
+					batchesDownloadEntity.setDeleted(rbli.getDeleted());
+					batchesDownloadRepository.remove(batchesDownloadEntity);
+				}
+			}
+		
 		}
-		return null;
 	}
 }

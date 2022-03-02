@@ -14,12 +14,26 @@
  */
 package it.interop.dgc.gateway.client;
 
+import java.lang.reflect.Type;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+
 import it.interop.dgc.gateway.client.base.RestApiClientBase;
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
@@ -28,22 +42,7 @@ import it.interop.dgc.gateway.dto.RevocationItemDto;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.dto.ValidationRuleDto;
 import it.interop.dgc.gateway.enums.CertificateType;
-import java.lang.reflect.Type;
-import java.net.URI;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @Service
@@ -429,7 +428,6 @@ public class RestApiClientImpl
 
             if (respEntity.getStatusCode() == HttpStatus.OK) {
             	
-            	System.out.println("Lorenzo "+new String(respEntity.getBody()));
                 Gson gson = new Gson();
                 Type trustListType = new TypeToken<HashMap<String, List<ValidationRuleDto>>>() {}
                     .getType();
@@ -549,19 +547,17 @@ public class RestApiClientImpl
     }
 
 	@Override
-	public RestApiResponse<RevocationItemDto> downloadRevocationList() throws RestApiException {
-		// TODO Auto-generated method stub
+	public RestApiResponse<RevocationItemDto> downloadRevocationList(String dateHeader) throws RestApiException {
+
 		URI uri = UriComponentsBuilder
 				.fromUriString(new StringBuffer(getBaseUrl()).append("/revocation-list").toString()).build().encode()
 				.toUri();
 
 		log.info("START REST Client calling-> {}", uri.toString());
 
-		ZonedDateTime now = ZonedDateTime.now();
-
 		HttpHeaders headers = makeBaseHeaders();
 		headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
-		headers.set(HttpHeaders.IF_MODIFIED_SINCE, "2021-06-01T00:00:00Z");
+		headers.set(HttpHeaders.IF_MODIFIED_SINCE, dateHeader.toString());
 
 		HttpEntity<Void> entity = new HttpEntity<Void>(headers);
 		ResponseEntity<byte[]> respEntity = getRestTemplate().exchange(uri, HttpMethod.GET, entity, byte[].class);
@@ -574,7 +570,7 @@ public class RestApiClientImpl
 			if (respEntity.getStatusCode() == HttpStatus.OK) {
 
 				Gson gson = new Gson();
-				Type revocationListType = new TypeToken<ArrayList<RevocationItemDto>>() {
+				Type revocationListType = new TypeToken<ArrayList<RevocationBatchListItemDto>>() {
 				}.getType();
 
 				ObjectMapper mapper = new ObjectMapper();

@@ -124,6 +124,6 @@ public interface RestApiClient {
     ) throws RestApiException;
     
     //Revocation EU Download
-    public RestApiResponse<RevocationItemDto> downloadRevocationList()
+    public RestApiResponse<RevocationItemDto> downloadRevocationList(String dateHeader)
         throws RestApiException;
 }
