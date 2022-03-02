@@ -1115,7 +1115,7 @@ public class DgcWorker {
 
 					validationBatch = signatureVerifier.map(validationBatchDto);
 
-					if (validationBatch != null) {
+					if (validationBatch != null && validationBatch.getHashType().equals("UCI")){
 
 						revocationBatchEntity.setBatch_id(batchId);
 						revocationBatchEntity.setCreatedAt(new Date());
@@ -1155,7 +1155,7 @@ public class DgcWorker {
 		
 		for(RevocationBatchListItemDto rvlid : revocationBatchListItemDto) {
 			RevocationBatchEntity revocationBatchEntity  = new RevocationBatchEntity();
-			revocationBatchEntity.setBatchId(rvlid.getBatchId());
+			revocationBatchEntity.setBatch_id(rvlid.getBatchId());
 			revocationBatchRepository.remove(revocationBatchEntity);
 
 		}
