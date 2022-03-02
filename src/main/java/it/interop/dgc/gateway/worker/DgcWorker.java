@@ -1085,13 +1085,21 @@ public class DgcWorker {
 					batchesDownloadEntity.setDeleted(rbli.getDeleted());
 					batchesDownloadRepository.remove(batchesDownloadEntity);
 				}
+				
+				for(RevocationBatchListItemDto batch : undeletedBatches) {
+					if(downloadBatch(batch.getBatchId())) {
+					}
+				}
+				if(removeBatch(deletedBatches)) {
+					
+				}
 			}
-		
+			
 		}
 	}
 
 
-	public String downloadBatch(String batchId) {
+	public Boolean downloadBatch(String batchId) {
 		RevocationBatchEntity revocationBatchEntity = new RevocationBatchEntity();
 		ValidationBatchDto validationBatchDto = new ValidationBatchDto();
 
@@ -1117,12 +1125,12 @@ public class DgcWorker {
 
 					}else {
 						log.error("Problem with validation batch: {}", batchId);
-						return null;
+						return false;
 					}
 
 				} else {
 					log.error("Invalid CMS for Revocation EU​​​​ ", batchId);
-					return null;
+					return false;
 				}
 
 			} catch (Exception e) {
@@ -1131,7 +1139,7 @@ public class DgcWorker {
 			}
 		} else {
 			log.error("Batch not valid regex error for ", batchId);
-			return null;
+			return false;
 		}
 		
 		// Save on MongoDB
@@ -1140,7 +1148,18 @@ public class DgcWorker {
 
 		
 		
-		return null;
+		return true;
+	}
+	
+	public Boolean removeBatch(List<RevocationBatchListItemDto> revocationBatchListItemDto){
+		
+		for(RevocationBatchListItemDto rvlid : revocationBatchListItemDto) {
+			RevocationBatchEntity revocationBatchEntity  = new RevocationBatchEntity();
+			revocationBatchEntity.setBatchId(rvlid.getBatchId());
+			revocationBatchRepository.remove(revocationBatchEntity);
+
+		}
+		return true;
 	}
 	
 	public static final String UUID_REGEX = "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$";
