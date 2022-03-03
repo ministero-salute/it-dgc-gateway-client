@@ -1059,13 +1059,13 @@ public class DgcWorker {
 				List<RevocationBatchListItemDto> undeletedBatches = revocationItemDto.getBatches()
 						.stream()
 						.filter(boo -> !boo.getDeleted())
-						.filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
+//						.filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
 						.collect(Collectors.toList());
 				
 				List<RevocationBatchListItemDto> deletedBatches = revocationItemDto.getBatches()
 						.stream()
 						.filter(boo -> boo.getDeleted())
-						.filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
+//						.filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
 						.collect(Collectors.toList());
 					
 				for(RevocationBatchListItemDto rbli : undeletedBatches ) {

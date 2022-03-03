@@ -24,7 +24,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import lombok.Data;
 
 @Data
-@Document(collection = "batches")
+@Document(collection = "revocation_batch_id")
 public class BatchesDownloadEntity implements Serializable {
 
     private static final long serialVersionUID = 2330473769691102540L;
