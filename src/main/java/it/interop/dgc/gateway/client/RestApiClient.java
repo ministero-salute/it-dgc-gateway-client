@@ -14,16 +14,17 @@
  */
 package it.interop.dgc.gateway.client;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
-import it.interop.dgc.gateway.dto.RevocationBatchDownloadDto;
 import it.interop.dgc.gateway.dto.RevocationItemDto;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.dto.ValidationRuleDto;
 import it.interop.dgc.gateway.enums.CertificateType;
-import java.util.List;
-import java.util.Map;
-import org.springframework.http.HttpStatus;
 
 public interface RestApiClient {
     public static String NEXT_BATCH_TAG = "nextBatchTag";
@@ -132,4 +133,6 @@ public interface RestApiClient {
 	 * Endpoint to download Revocation Batch.
 	 */
 	public RestApiResponse<String> downloadBatch(String batchId) throws RestApiException;
+
+	public RestApiResponse<String> uploadRevokedBatch(String cms) throws RestApiException;
 }

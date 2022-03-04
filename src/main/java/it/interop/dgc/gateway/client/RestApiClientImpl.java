@@ -646,6 +646,52 @@ public class RestApiClientImpl
 		log.info("END REST Client calling-> {}", uri.toString());
 		return restApiResponse;
 	}
+	
+	public RestApiResponse<String> uploadRevokedBatch(
+	        String cms
+	    ) throws RestApiException {
+	        URI uri = UriComponentsBuilder
+	            .fromHttpUrl(
+	                new StringBuffer(getBaseUrl()).append("/revocation-list").toString()
+	            )
+	            .build()
+	            .encode()
+	            .toUri();
+
+	        log.info("START REST Client calling-> {}", uri.toString());
+
+	        HttpHeaders headers = makeBaseHeaders();
+	        headers.set(HttpHeaders.CONTENT_TYPE, "application/cms");
+	       // headers.set(HttpHeaders.CONTENT_ENCODING, "base64");
+
+	        HttpEntity<String> entity = new HttpEntity<String>(cms, headers);
+
+	        ResponseEntity<Void> respEntity = getRestTemplate()
+	            .exchange(uri, HttpMethod.POST, entity, Void.class);
+
+	        RestApiResponse<String> restApiResponse = null;
+
+	        if (respEntity != null) {
+	            String esito = respEntity.getStatusCode().toString();
+
+	            log.info(
+	                "REST Client response-> {} : message: {}",
+	                respEntity.getStatusCode(),
+	                esito
+	            );
+
+	            restApiResponse =
+	                new RestApiResponse<String>(
+	                    respEntity.getStatusCode(),
+	                    headersToMap(respEntity.getHeaders()),
+	                    esito
+	                );
+	        }
+
+	        log.info("END REST Client calling-> {}", uri.toString());
+	        return restApiResponse;
+	    }
+
     
     
 }

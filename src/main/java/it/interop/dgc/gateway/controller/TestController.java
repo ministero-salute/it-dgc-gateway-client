@@ -215,6 +215,20 @@ public class TestController {
 		}
 		return new ResponseEntity<String>(content.toString(), HttpStatus.OK);
 	}
+	
+	@GetMapping("/testRevocheUpload")
+	public ResponseEntity<String> testRevocheUploadBatch() {
+		StringBuffer content = new StringBuffer();
+		try {
+			efgsWorker.sendRevoche();
+			log.info("OK");
+			content.append("testRevocheUploadBatch: OK");
+		} catch (Exception e) {
+			e.printStackTrace();
+			content.append("Errore: ").append(e.getMessage()).append("<br>");
+		}
+		return new ResponseEntity<String>(content.toString(), HttpStatus.OK);
+	}
 }
 
     

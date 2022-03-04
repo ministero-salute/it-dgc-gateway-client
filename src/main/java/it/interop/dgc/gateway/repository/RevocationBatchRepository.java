@@ -21,8 +21,9 @@ public class RevocationBatchRepository {
      		RevocationBatchEntity revocationBatchEntity
         ) {
     		Query query = new Query();
-    		query.addCriteria(new Criteria("_id").is(revocationBatchEntity.getBatch_id()));
+    		query.addCriteria(new Criteria("batch_id").is(revocationBatchEntity.getBatch_id()));
             mongoTemplate.remove(query, revocationBatchEntity.getClass());
             return;
         }
+
 }
