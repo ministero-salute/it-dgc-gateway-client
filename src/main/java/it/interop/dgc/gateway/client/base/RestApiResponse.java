@@ -26,6 +26,7 @@ public class RestApiResponse<T> {
     private final HttpStatus statusCode;
     private final Map<String, List<String>> headers;
     private final T data;
+    private String headerString;
 
     public RestApiResponse(
         HttpStatus statusCode,
@@ -59,4 +60,17 @@ public class RestApiResponse<T> {
             : null;
         return "null".equalsIgnoreCase(netBatchTag) ? null : netBatchTag;
     }
+    
+    public RestApiResponse(
+            HttpStatus statusCode,
+            Map<String, List<String>> headers,
+            String headerString,
+            T data
+        ) {
+            this.statusCode = statusCode;
+            this.headers = headers; 
+            this.headerString = headerString;
+            this.data = data;
+        }
+
 }

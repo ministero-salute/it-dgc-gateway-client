@@ -14,7 +14,6 @@
  */
 package it.interop.dgc.gateway.worker;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -30,7 +29,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.bouncycastle.cms.CMSException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -46,7 +44,6 @@ import it.interop.dgc.gateway.akamai.AkamaiFastPurge;
 import it.interop.dgc.gateway.client.RestApiClient;
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
-import it.interop.dgc.gateway.dto.RevocationBatchListItemDto;
 import it.interop.dgc.gateway.dto.RevocationItemDto;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.dto.ValidationBatchDto;
@@ -71,6 +68,7 @@ import it.interop.dgc.gateway.entity.SignerUploadInformationEntity;
 import it.interop.dgc.gateway.entity.ValueSetEntity;
 import it.interop.dgc.gateway.enums.CertificateType;
 import it.interop.dgc.gateway.mapper.DgcMapper;
+import it.interop.dgc.gateway.model.RevocationBatch;
 import it.interop.dgc.gateway.model.ValidationBatch;
 import it.interop.dgc.gateway.model.ValidationRule;
 import it.interop.dgc.gateway.repository.BatchesDownloadRepository;
@@ -86,7 +84,6 @@ import it.interop.dgc.gateway.repository.SignerInformationRepository;
 import it.interop.dgc.gateway.repository.SignerInvalidInformationRepository;
 import it.interop.dgc.gateway.repository.SignerUploadInformationRepository;
 import it.interop.dgc.gateway.repository.ValueSetRepository;
-import it.interop.dgc.gateway.signing.CertificateSignatureException;
 import it.interop.dgc.gateway.signing.CertificateSignatureVerifier;
 import it.interop.dgc.gateway.signing.SignatureService;
 import it.interop.dgc.gateway.util.BusinessRulesUtils;
@@ -743,17 +740,25 @@ public class DgcWorker {
 				RevocationItemDto revocationItemDto = downloadBatchList.getData();
 				more = revocationItemDto.getMore();
 
-				List<RevocationBatchListItemDto> undeletedBatches = revocationItemDto.getBatches().stream()
+				List<RevocationBatch> undeletedBatchesIt = revocationItemDto.getBatches().stream()
 						.filter(boo -> !boo.getDeleted())
-//						.filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
 						.collect(Collectors.toList());
 
-				List<RevocationBatchListItemDto> deletedBatches = revocationItemDto.getBatches().stream()
+				List<RevocationBatch> deletedBatchesIt = revocationItemDto.getBatches().stream()
 						.filter(boo -> boo.getDeleted())
-//						.filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
 						.collect(Collectors.toList());
 
-				for (RevocationBatchListItemDto rbli : undeletedBatches) {
+				List<RevocationBatch> deletedBatches = revocationItemDto.getBatches().stream()
+						.filter(boo -> boo.getDeleted())
+						.filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
+						.collect(Collectors.toList());
+
+				List<RevocationBatch> undeletedBatches = revocationItemDto.getBatches().stream()
+						.filter(boo -> !boo.getDeleted())
+						.filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
+						.collect(Collectors.toList());
+
+				for (RevocationBatch rbli : undeletedBatchesIt) {
 					BatchesDownloadEntity batchesDownloadEntity = new BatchesDownloadEntity();
 					batchesDownloadEntity.setBatch_id(rbli.getBatchId());
 					batchesDownloadEntity.setCountry(rbli.getCountry());
@@ -763,20 +768,22 @@ public class DgcWorker {
 					log.info("Saved on MongoDB -->: {}", rbli.getBatchId());
 				}
 
-				for (RevocationBatchListItemDto rbli : deletedBatches) {
+				for (RevocationBatch rbli : deletedBatchesIt) {
 					BatchesDownloadEntity batchesDownloadEntity = new BatchesDownloadEntity();
 					batchesDownloadEntity.setBatch_id(rbli.getBatchId());
 					batchesDownloadRepository.remove(batchesDownloadEntity);
-					log.info("Removed fron MongoDB -->: {}", rbli.getBatchId());
+					log.info("Removed from MongoDB -->: {}", rbli.getBatchId());
 				}
 
-				for (RevocationBatchListItemDto batch : undeletedBatches) {
-					if (downloadBatch(batch.getBatchId())) {
+				for (RevocationBatch batch : undeletedBatches) {
+					if (!downloadBatch(batch.getBatchId())) {
+						log.error("Problem with download batchId: {}", batch.getBatchId());
 					}
 				}
-				if (removeBatch(deletedBatches)) {
-
-				}
+				for (RevocationBatch batch : deletedBatches)
+					if (!removeBatch(batch)) {
+						log.error("batchId: {} not found", batch.getBatchId());
+					}
 			}
 
 		}
@@ -840,64 +847,49 @@ public class DgcWorker {
 
 		String signedCertificate = null;
 
-
 		List<RevocationUploadBatchEntity> toSendRevocationBatches = revocationUploadBatchRepository
 				.getRevocationBatchUpload();
-		if (toSendRevocationBatches != null && toSendRevocationBatches.size()!=0) {
+		if (toSendRevocationBatches != null && toSendRevocationBatches.size() != 0) {
 			for (RevocationUploadBatchEntity revocationBatch : toSendRevocationBatches) {
 				String rawData = revocationBatch.getRawData();
+				String batchTag = DscUtil.batchTagGenerator(OperationType.UPLOAD);
 
 				String base64RawData = Base64.getEncoder().encodeToString(rawData.getBytes());
 				try {
 					signedCertificate = signatureService.getSignatureForBytes(base64RawData);
-				} catch (CMSException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (CertificateSignatureException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 
-				RestApiResponse<String> resp;
-				try {
+					RestApiResponse<String> resp;
 					resp = client.uploadRevokedBatch(signedCertificate);
 
 					if (resp.getStatusCode() == HttpStatus.CREATED) {
-						String batchId = resp.getHeaders().get("ETag").get(0).toString();
-						System.out.println(batchId);
-
-						String batchTag = DscUtil.batchTagGenerator(OperationType.UPLOAD);
+						String batchId = resp.getHeaderString();
 						
 						String id = revocationBatch.getId();
 						revocationUploadBatchRepository.updateBatchUploadInformation(batchId, batchTag, id);
 						log.info("Updated on MongoDB -->: {}", batchId);
 					}
-				} catch (RestApiException e) {
+				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-
+					log.error("ERROR Processing upload RestApiException. -> batchTag: {} ", batchTag, e);
 				}
 			}
-		}
-		else {
+		} else {
 			log.info("Not found batches to upload");
 		}
 
 	}
 
-	public Boolean removeBatch(List<RevocationBatchListItemDto> revocationBatchListItemDto) {
+	public Boolean removeBatch(RevocationBatch rbli) {
 
-		for (RevocationBatchListItemDto rbli : revocationBatchListItemDto) {
-			RevocationBatchEntity revocationBatchEntity = new RevocationBatchEntity();
-			revocationBatchEntity.setBatch_id(rbli.getBatchId());
-			revocationBatchRepository.remove(revocationBatchEntity);
+		Boolean flag = false;
+		RevocationBatchEntity revocationBatchEntity = new RevocationBatchEntity();
+		revocationBatchEntity.setBatch_id(rbli.getBatchId());
+		if(revocationBatchRepository.remove(revocationBatchEntity) !=0L) {
 			log.info("Removed from MongoDB -->: {}", rbli.getBatchId());
-
+			flag = true;
 		}
-		return true;
+		return flag;
 	}
 
 	public static final String UUID_REGEX = "^[0-9a-f]{8}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{4}\\b-[0-9a-f]{12}$";

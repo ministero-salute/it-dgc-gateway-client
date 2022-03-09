@@ -1,4 +1,4 @@
-package it.interop.dgc.gateway.dto;
+package it.interop.dgc.gateway.model;
 
 import java.util.Date;
 
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Data
 @Getter
 @Setter
-public class RevocationBatchListItemDto {
+public class RevocationBatch {
 
 	    private String batchId;
 

@@ -1,6 +1,9 @@
 package it.interop.dgc.gateway.dto;
 
-public class RevocationBatchDownloadDto {
+import lombok.Data;
+
+@Data
+public class RevocationBatchDto {
 	private String batchId;
 
 	private String signedCms;

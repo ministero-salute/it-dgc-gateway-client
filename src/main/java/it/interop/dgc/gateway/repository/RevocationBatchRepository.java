@@ -6,6 +6,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
+import com.mongodb.client.result.DeleteResult;
+
 import it.interop.dgc.gateway.entity.RevocationBatchEntity;
 
 @Repository
@@ -17,13 +19,14 @@ public class RevocationBatchRepository {
         return mongoTemplate.save(revocationBatchEntity);
     }
   
-    public void remove(
+    public Long remove(
      		RevocationBatchEntity revocationBatchEntity
         ) {
     		Query query = new Query();
     		query.addCriteria(new Criteria("batch_id").is(revocationBatchEntity.getBatch_id()));
-            mongoTemplate.remove(query, revocationBatchEntity.getClass());
-            return;
+            DeleteResult count = mongoTemplate.remove(query, revocationBatchEntity.getClass());
+            return count.getDeletedCount();
+
         }
 
 }

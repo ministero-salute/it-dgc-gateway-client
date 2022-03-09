@@ -37,11 +37,11 @@ import com.google.gson.reflect.TypeToken;
 import it.interop.dgc.gateway.client.base.RestApiClientBase;
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
-import it.interop.dgc.gateway.dto.RevocationBatchListItemDto;
 import it.interop.dgc.gateway.dto.RevocationItemDto;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.dto.ValidationRuleDto;
 import it.interop.dgc.gateway.enums.CertificateType;
+import it.interop.dgc.gateway.model.RevocationBatch;
 //github.com/sebaker88/it-dgc-gateway-client.git
 import lombok.extern.slf4j.Slf4j;
 
@@ -551,7 +551,10 @@ public class RestApiClientImpl
 	public RestApiResponse<RevocationItemDto> downloadRevocationList(String dateHeader) throws RestApiException {
 
 		URI uri = UriComponentsBuilder
-				.fromUriString(new StringBuffer(getBaseUrl()).append("/revocation-list").toString()).build().encode()
+				.fromUriString(new StringBuffer(getBaseUrl()).append("/revocation-list")
+				.toString())
+				.build()
+				.encode()
 				.toUri();
 
 		log.info("START REST Client calling-> {}", uri.toString());
@@ -571,7 +574,7 @@ public class RestApiClientImpl
 			if (respEntity.getStatusCode() == HttpStatus.OK) {
 
 				Gson gson = new Gson();
-				Type revocationListType = new TypeToken<ArrayList<RevocationBatchListItemDto>>() {
+				Type revocationListType = new TypeToken<ArrayList<RevocationBatch>>() {
 				}.getType();
 
 				ObjectMapper mapper = new ObjectMapper();
@@ -585,6 +588,7 @@ public class RestApiClientImpl
 
 				} catch (Exception e) {
 					e.printStackTrace();
+					log.info("jsonNode error calling-> {}", uri.toString());
 				}
 
 			}
@@ -597,24 +601,18 @@ public class RestApiClientImpl
 		return restApiResponse;
 	}
 
-    @Override
-    public RestApiResponse<String> downloadBatch(
-        String batchId
-    ) throws RestApiException {
-        Map<String, String> urlParams = new HashMap<>();
-        urlParams.put("batchId", batchId);
+	@Override
+	public RestApiResponse<String> downloadBatch(String batchId) throws RestApiException {
+		Map<String, String> urlParams = new HashMap<>();
+		urlParams.put("batchId", batchId);
 
-        URI uri = UriComponentsBuilder
-            .fromUriString(
-                new StringBuffer(getBaseUrl())
-                    .append("/revocation-list/{batchId}")
-                    .toString()
-            )
-            .buildAndExpand(urlParams)
-            .encode()
-            .toUri();
-        return _getRevocationBatch(uri);
-    }
+		URI uri = UriComponentsBuilder
+				.fromUriString(new StringBuffer(getBaseUrl()).append("/revocation-list/{batchId}").toString())
+				.buildAndExpand(urlParams)
+				.encode()
+				.toUri();
+		return _getRevocationBatch(uri);
+	}
     
 	private RestApiResponse<String> _getRevocationBatch(URI uri) throws RestApiException {
 		log.info("START REST Client calling-> {}", uri.toString());
@@ -629,7 +627,7 @@ public class RestApiClientImpl
 		RestApiResponse<String> restApiResponse = null;
 
 		String batch = null;
-		
+
 		if (respEntity != null) {
 			log.info("REST Client response-> {}", respEntity.getStatusCode());
 			log.info("REST Client response-> {}", new String(respEntity.getBody()));
@@ -647,51 +645,38 @@ public class RestApiClientImpl
 		return restApiResponse;
 	}
 	
-	public RestApiResponse<String> uploadRevokedBatch(
-	        String cms
-	    ) throws RestApiException {
-	        URI uri = UriComponentsBuilder
-	            .fromHttpUrl(
-	                new StringBuffer(getBaseUrl()).append("/revocation-list").toString()
-	            )
-	            .build()
-	            .encode()
-	            .toUri();
+	public RestApiResponse<String> uploadRevokedBatch(String cms) throws RestApiException {
+		URI uri = UriComponentsBuilder.fromHttpUrl(new StringBuffer(getBaseUrl()).append("/revocation-list").toString())
+				.build()
+				.encode()
+				.toUri();
 
-	        log.info("START REST Client calling-> {}", uri.toString());
+		log.info("START REST Client calling-> {}", uri.toString());
 
-	        HttpHeaders headers = makeBaseHeaders();
-	        headers.set(HttpHeaders.CONTENT_TYPE, "application/cms");
-	       // headers.set(HttpHeaders.CONTENT_ENCODING, "base64");
+		HttpHeaders headers = makeBaseHeaders();
+		headers.set(HttpHeaders.CONTENT_TYPE, "application/cms");
 
-	        HttpEntity<String> entity = new HttpEntity<String>(cms, headers);
+		HttpEntity<String> entity = new HttpEntity<String>(cms, headers);
 
-	        ResponseEntity<Void> respEntity = getRestTemplate()
-	            .exchange(uri, HttpMethod.POST, entity, Void.class);
+		ResponseEntity<Void> respEntity = getRestTemplate().exchange(uri, HttpMethod.POST, entity, Void.class);
 
-	        RestApiResponse<String> restApiResponse = null;
+		RestApiResponse<String> restApiResponse = null;
 
-	        if (respEntity != null) {
-	            String esito = respEntity.getStatusCode().toString();
+		if (respEntity != null) {
+			String esito = respEntity.getStatusCode().toString();
 
-	            log.info(
-	                "REST Client response-> {} : message: {}",
-	                respEntity.getStatusCode(),
-	                esito
-	            );
+			log.info("REST Client response-> {} : message: {}", respEntity.getStatusCode(), esito);
 
-	            restApiResponse =
-	                new RestApiResponse<String>(
-	                    respEntity.getStatusCode(),
-	                    headersToMap(respEntity.getHeaders()),
-	                    esito
-	                );
-	        }
+			respEntity.getHeaders().get("ETag").get(0).toString();
+			
+			restApiResponse = new RestApiResponse<String>(respEntity.getStatusCode(),
+					headersToMap(respEntity.getHeaders()),
+					respEntity.getHeaders().get("ETag").get(0).toString(), esito);
+		}
 
-	        log.info("END REST Client calling-> {}", uri.toString());
-	        return restApiResponse;
-	    }
-
+		log.info("END REST Client calling-> {}", uri.toString());
+		return restApiResponse;
+	}
     
     
 }
