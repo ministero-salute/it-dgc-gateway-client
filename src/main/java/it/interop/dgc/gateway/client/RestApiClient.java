@@ -14,18 +14,23 @@
  */
 package it.interop.dgc.gateway.client;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+
 import it.interop.dgc.gateway.client.base.RestApiException;
 import it.interop.dgc.gateway.client.base.RestApiResponse;
+import it.interop.dgc.gateway.dto.RevocationItemDto;
 import it.interop.dgc.gateway.dto.TrustListItemDto;
 import it.interop.dgc.gateway.dto.ValidationRuleDto;
 import it.interop.dgc.gateway.enums.CertificateType;
-import java.util.List;
-import java.util.Map;
-import org.springframework.http.HttpStatus;
 
 public interface RestApiClient {
     public static String NEXT_BATCH_TAG = "nextBatchTag";
     public static String BATCH_TAG = "batchTag";
+    public static final String IF_MODIFIED_SINCE = "If-Modified-Since";
+
 
     //OK. Returns selected batch. - OK store data and try downloading next batch
     public static HttpStatus DOWNLOAD_STATUS_RETURNS_BATCH_200 = HttpStatus.OK;
@@ -119,4 +124,15 @@ public interface RestApiClient {
     public RestApiResponse<Map<String, List<ValidationRuleDto>>> downloadValidationRules(
         String country
     ) throws RestApiException;
+    
+    //Revocation EU Download
+    public RestApiResponse<RevocationItemDto> downloadRevocationList(String dateHeader)
+        throws RestApiException;
+    
+    /**
+	 * Endpoint to download Revocation Batch.
+	 */
+	public RestApiResponse<String> downloadBatch(String batchId) throws RestApiException;
+
+	public RestApiResponse<String> uploadRevokedBatch(String cms) throws RestApiException;
 }
