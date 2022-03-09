@@ -741,21 +741,17 @@ public class DgcWorker {
 				more = revocationItemDto.getMore();
 
 				List<RevocationBatch> undeletedBatchesIt = revocationItemDto.getBatches().stream()
-						.filter(boo -> !boo.getDeleted())
-						.collect(Collectors.toList());
+						.filter(boo -> !boo.getDeleted()).collect(Collectors.toList());
 
 				List<RevocationBatch> deletedBatchesIt = revocationItemDto.getBatches().stream()
-						.filter(boo -> boo.getDeleted())
-						.collect(Collectors.toList());
+						.filter(boo -> boo.getDeleted()).collect(Collectors.toList());
 
 				List<RevocationBatch> deletedBatches = revocationItemDto.getBatches().stream()
-						.filter(boo -> boo.getDeleted())
-						.filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
+						.filter(boo -> boo.getDeleted()).filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
 						.collect(Collectors.toList());
 
 				List<RevocationBatch> undeletedBatches = revocationItemDto.getBatches().stream()
-						.filter(boo -> !boo.getDeleted())
-						.filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
+						.filter(boo -> !boo.getDeleted()).filter(p1 -> !p1.getCountry().equals(COUNTRY_IT))
 						.collect(Collectors.toList());
 
 				for (RevocationBatch rbli : undeletedBatchesIt) {
@@ -799,29 +795,28 @@ public class DgcWorker {
 				ValidationBatch validationBatch = null;
 
 				RestApiResponse<String> cms = client.downloadBatch(batchId);
+				log.info("RestApiClient batch download response {}", cms);
 				validationBatchDto.setCms(cms.getData());
 
 				if (signatureVerifier.revocationCheckCmsSignature(validationBatchDto)) {
 
 					validationBatch = signatureVerifier.map(validationBatchDto);
-
-					if (validationBatch != null && validationBatch.getHashType().equals("UCI")) {
-
-						revocationBatchEntity.setBatch_id(batchId);
-						revocationBatchEntity.setCreatedAt(new Date());
-						revocationBatchEntity.setExpires(validationBatch.getExpires());
-						revocationBatchEntity.setRawData(validationBatch.getRawJson());
-						revocationBatchEntity.setEntries(validationBatch.getEntries());
-
-					} else {
-						if(!validationBatch.getHashType().equals("UCI")) {
+					log.info("validationBatch value {}", validationBatch);
+					if (validationBatch != null) {
+						if (validationBatch.getHashType().equals("UCI")) {
+							revocationBatchEntity.setBatch_id(batchId);
+							revocationBatchEntity.setCreatedAt(new Date());
+							revocationBatchEntity.setExpires(validationBatch.getExpires());
+							revocationBatchEntity.setRawData(validationBatch.getRawJson());
+							revocationBatchEntity.setEntries(validationBatch.getEntries());
+						} else {
 							log.error("Not an UCI Batch: {}", batchId);
 							return false;
 						}
+					} else {
 						log.error("Problem with validation batch: {}", batchId);
 						return false;
 					}
-
 				} else {
 					log.error("Invalid CMS for Revocation EU​​​​ ", batchId);
 					return false;
@@ -863,7 +858,7 @@ public class DgcWorker {
 
 					if (resp.getStatusCode() == HttpStatus.CREATED) {
 						String batchId = resp.getHeaderString();
-						
+
 						String id = revocationBatch.getId();
 						revocationUploadBatchRepository.updateBatchUploadInformation(batchId, batchTag, id);
 						log.info("Updated on MongoDB -->: {}", batchId);
@@ -885,7 +880,7 @@ public class DgcWorker {
 		Boolean flag = false;
 		RevocationBatchEntity revocationBatchEntity = new RevocationBatchEntity();
 		revocationBatchEntity.setBatch_id(rbli.getBatchId());
-		if(revocationBatchRepository.remove(revocationBatchEntity) !=0L) {
+		if (revocationBatchRepository.remove(revocationBatchEntity) != 0L) {
 			log.info("Removed from MongoDB -->: {}", rbli.getBatchId());
 			flag = true;
 		}
