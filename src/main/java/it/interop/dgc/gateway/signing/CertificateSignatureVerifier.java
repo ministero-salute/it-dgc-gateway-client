@@ -135,7 +135,7 @@ public class CertificateSignatureVerifier {
 
         try {
             return dcs.isSignatureValid(verifier);
-        } catch (CertException e) {
+        } catch (Exception e) {
             log.debug(
                 "Could not verify that certificate was issued by ca. Certificate: {}, CA: {}",
                 dcs.getSubject().toString(),
